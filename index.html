@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>PAUL · Les Crocs Mignons · Sync v2</title>
+<title>PAUL · Les Crocs Mignons · Sync v3 REST</title>
 <style>
   * { box-sizing: border-box; margin: 0; padding: 0; }
   :root {
@@ -361,8 +361,8 @@ CREATE TABLE IF NOT EXISTS attendance_records (
 );
 
 -- Activer Realtime
-ALTER PUBLICATION supabase_realtime
-  ADD TABLE attendance_records;
+-- Realtime non nécessaire dans cette version REST/polling.
+-- La synchro entre appareils se fait par relecture automatique toutes les 5 secondes.
 
 -- Politique RLS ouverte (accès par URL)
 ALTER TABLE attendance_records ENABLE ROW LEVEL SECURITY;
@@ -414,19 +414,23 @@ CREATE INDEX IF NOT EXISTS idx_date
 
 <div class="toast" id="toast"></div>
 
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
 const SB_URL = 'https://vihqikkyvuwsruymrjxb.supabase.co';
 const SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZpaHFpa2t5dnV3c3J1eW1yanhiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzkxMDUwODgsImV4cCI6MjA5NDY4MTA4OH0.-jPzopYNLKdht7eJsxUIJHXOEyH9du73dxuZDsGBN9o';
-const supabase = window.supabase.createClient(SB_URL, SB_KEY, {
-  auth: { persistSession: false, autoRefreshToken: false },
-  realtime: { params: { eventsPerSecond: 10 } }
-});
+
+// Version v3 : zéro CDN, zéro SDK Supabase.
+// On utilise l'API REST Supabase + polling automatique.
+// C'est moins élégant que Realtime, mais beaucoup plus robuste pour un simple fichier HTML sur GitHub Pages.
+const SB_HEADERS = {
+  'Content-Type': 'application/json',
+  'apikey': SB_KEY,
+  'Authorization': `Bearer ${SB_KEY}`
+};
 
 let records = JSON.parse(localStorage.getItem('mam_records_v2') || '{}');
 let calYear, calMonth, modalDate = null, histFilterMonth = null;
-let realtimeChannel = null;
 let pollTimer = null;
+let lastRemoteSignature = '';
 
 const today = new Date();
 const todayStr = fmt(today);
@@ -440,12 +444,8 @@ function minsToHM(m) {
 }
 
 function getStatus(r, ds) {
-  if (!r || (!r.arrival && !r.departure)) {
-    return ds < todayStr ? 'red' : 'gray';
-  }
-  if (r.arrival && !r.departure) {
-    return ds < todayStr ? 'red' : 'gray';
-  }
+  if (!r || (!r.arrival && !r.departure)) return ds < todayStr ? 'red' : 'gray';
+  if (r.arrival && !r.departure) return ds < todayStr ? 'red' : 'gray';
   if (r.arrival && r.departure) {
     const dur = getDuration(r);
     return dur > 540 ? 'orange' : 'green';
@@ -460,35 +460,38 @@ function getDuration(r) {
   return (dh*60+dm) - (ah*60+am);
 }
 
-function saveLocal() {
-  localStorage.setItem('mam_records_v2', JSON.stringify(records));
-}
+function saveLocal() { localStorage.setItem('mam_records_v2', JSON.stringify(records)); }
 
-function setSyncStatus(state) {
+function setSyncStatus(state, extra='') {
   const dot = document.getElementById('sync-dot');
   const label = document.getElementById('sync-label');
   if (!dot || !label) return;
   dot.className = 'sync-dot' + (state === 'syncing' ? ' syncing' : state === 'offline' ? ' offline' : '');
   const labels = {
     ok: 'Synchronisé · ' + fmtTime(new Date()),
-    syncing: 'Synchronisation…',
-    offline: 'Hors ligne · données locales',
-    realtime: 'Temps réel actif ✓'
+    syncing: 'Connexion / synchronisation Supabase…',
+    offline: 'Erreur Supabase · données locales',
+    realtime: 'Synchronisation active · polling 5 s ✓'
   };
-  label.textContent = labels[state] || state;
+  label.textContent = (labels[state] || state) + (extra ? ' · ' + extra : '');
 }
 
-/* ---- SUPABASE API + REALTIME OFFICIEL ---- */
+async function sbRequest(path, options = {}) {
+  const res = await fetch(SB_URL + path, {
+    ...options,
+    headers: { ...SB_HEADERS, ...(options.headers || {}) }
+  });
+  const text = await res.text();
+  if (!res.ok) {
+    throw new Error(`HTTP ${res.status} ${res.statusText} — ${text || 'Pas de détail'}`);
+  }
+  return text ? JSON.parse(text) : null;
+}
+
 async function loadAll(silent = false) {
   if (!silent) setSyncStatus('syncing');
   try {
-    const { data, error } = await supabase
-      .from('attendance_records')
-      .select('date,arrival_time,departure_time,notes,updated_at')
-      .order('date', { ascending: false });
-
-    if (error) throw error;
-
+    const data = await sbRequest('/rest/v1/attendance_records?select=date,arrival_time,departure_time,notes,updated_at&order=date.desc');
     const remoteRecords = {};
     (data || []).forEach(row => {
       remoteRecords[row.date] = {
@@ -498,20 +501,24 @@ async function loadAll(silent = false) {
       };
     });
 
+    const sig = JSON.stringify(remoteRecords);
+    const changed = sig !== lastRemoteSignature;
+    lastRemoteSignature = sig;
     records = remoteRecords;
     saveLocal();
-    if (!silent) setSyncStatus('ok');
+
+    if (!silent) setSyncStatus('ok', `${(data || []).length} ligne(s)`);
     const st = document.getElementById('setup-status');
     if (st && !silent) st.textContent = '✅ Connecté à Supabase · ' + (data || []).length + ' ligne(s) chargée(s)';
     renderAll();
-    subscribeRealtime();
     startPollingFallback();
+    if (silent && changed) setSyncStatus('realtime');
     return data || [];
   } catch(e) {
-    console.error('Erreur chargement Supabase:', e);
+    console.error('Erreur lecture Supabase:', e);
     if (!silent) setSyncStatus('offline');
     const st = document.getElementById('setup-status');
-    if (st && !silent) st.textContent = '⚠️ Erreur Supabase : ' + (e.message || JSON.stringify(e));
+    if (st && !silent) st.textContent = '❌ Erreur Supabase : ' + (e.message || JSON.stringify(e));
     renderAll();
     return null;
   }
@@ -524,7 +531,6 @@ async function forceRefreshFromSupabase() {
 
 function startPollingFallback() {
   if (pollTimer) return;
-  // Sécurité : même si Realtime ne marche pas, l'autre appareil récupère les données toutes les 5 secondes.
   pollTimer = setInterval(() => loadAll(true), 5000);
 }
 
@@ -540,7 +546,7 @@ async function runSyncDiagnostic() {
   const row = rows && rows.find(r => r.date === ds);
   const st = document.getElementById('setup-status');
   if (ok && row && row.notes === marker) {
-    if (st) st.textContent = '✅ Test OK : écriture + relecture Supabase fonctionnent. Si l’autre appareil ne voit rien, il n’ouvre pas cette version ou son cache est ancien.';
+    if (st) st.textContent = '✅ Test OK : écriture + relecture Supabase fonctionnent. L’autre appareil doit voir la donnée sous 5 secondes.';
     showToast('Test synchro OK');
   } else {
     if (st) st.textContent = '❌ Test KO : écriture ou relecture Supabase ne fonctionne pas. Regarde la console.';
@@ -551,7 +557,6 @@ async function runSyncDiagnostic() {
 async function upsertRecord(ds) {
   setSyncStatus('syncing');
   const r = records[ds] || {};
-
   const payload = {
     date: ds,
     arrival_time: r.arrival || null,
@@ -561,65 +566,22 @@ async function upsertRecord(ds) {
   };
 
   try {
-    const { error } = await supabase
-      .from('attendance_records')
-      .upsert(payload, { onConflict: 'date' });
-
-    if (error) throw error;
+    await sbRequest('/rest/v1/attendance_records?on_conflict=date', {
+      method: 'POST',
+      headers: { 'Prefer': 'resolution=merge-duplicates,return=minimal' },
+      body: JSON.stringify(payload)
+    });
     setSyncStatus('ok');
     setTimeout(() => loadAll(true), 300);
     return true;
   } catch(e) {
     console.error('Erreur écriture Supabase:', e);
     setSyncStatus('offline');
+    const st = document.getElementById('setup-status');
+    if (st) st.textContent = '❌ Erreur écriture Supabase : ' + (e.message || JSON.stringify(e));
     showToast('⚠️ Non synchronisé');
     return false;
   }
-}
-
-/* ---- REALTIME OFFICIEL SUPABASE ---- */
-function subscribeRealtime() {
-  if (realtimeChannel) return;
-
-  realtimeChannel = supabase
-    .channel('attendance_records_live')
-    .on(
-      'postgres_changes',
-      { event: '*', schema: 'public', table: 'attendance_records' },
-      (payload) => {
-        console.log('Realtime reçu:', payload);
-        const row = payload.new;
-        if (!row || !row.date) return;
-
-        records[row.date] = {
-          arrival: row.arrival_time ? row.arrival_time.slice(0,5) : null,
-          departure: row.departure_time ? row.departure_time.slice(0,5) : null,
-          notes: row.notes || ''
-        };
-
-        saveLocal();
-        renderAll();
-        setSyncStatus('realtime');
-
-        if (row.date === todayStr) showToast('🔄 Mise à jour reçue');
-      }
-    )
-    .subscribe((status, err) => {
-      console.log('Statut Realtime:', status, err || '');
-      const st = document.getElementById('setup-status');
-
-      if (status === 'SUBSCRIBED') {
-        setSyncStatus('realtime');
-        if (st) st.textContent = '✅ Connecté · Temps réel actif';
-      }
-
-      if (status === 'CHANNEL_ERROR' || status === 'TIMED_OUT' || status === 'CLOSED') {
-        console.error('Erreur Realtime:', status, err);
-        setSyncStatus('offline');
-        if (st) st.textContent = '⚠️ Realtime non actif · vérifie Publication Supabase';
-        realtimeChannel = null;
-      }
-    });
 }
 
 /* ---- RENDER ---- */
