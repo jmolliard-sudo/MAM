@@ -453,6 +453,7 @@ let records = JSON.parse(localStorage.getItem('mam_records_v2') || '{}');
 let calYear, calMonth, modalDate = null, histFilterMonth = null;
 let pollTimer = null;
 let lastRemoteSignature = '';
+let supportsDayOffColumn = true; // Passe à false automatiquement si la colonne is_day_off n'existe pas encore dans Supabase
 
 const today = new Date();
 const todayStr = fmt(today);
@@ -582,14 +583,28 @@ async function sbRequest(path, options = {}) {
 async function loadAll(silent = false) {
   if (!silent) setSyncStatus('syncing');
   try {
-    const data = await sbRequest('/rest/v1/attendance_records?select=date,arrival_time,departure_time,notes,is_day_off,updated_at&order=date.desc');
+    let data;
+    try {
+      data = await sbRequest('/rest/v1/attendance_records?select=date,arrival_time,departure_time,notes,is_day_off,updated_at&order=date.desc');
+      supportsDayOffColumn = true;
+    } catch (e) {
+      const msg = String(e.message || e);
+      if (msg.includes('is_day_off') || msg.includes('column')) {
+        console.warn('Colonne is_day_off absente : fallback lecture sans jour chômé. Exécute le SQL Config pour activer la synchro des jours chômés.', e);
+        supportsDayOffColumn = false;
+        data = await sbRequest('/rest/v1/attendance_records?select=date,arrival_time,departure_time,notes,updated_at&order=date.desc');
+      } else {
+        throw e;
+      }
+    }
+
     const remoteRecords = {};
     (data || []).forEach(row => {
       remoteRecords[row.date] = {
         arrival: row.arrival_time ? row.arrival_time.slice(0,5) : null,
         departure: row.departure_time ? row.departure_time.slice(0,5) : null,
         notes: row.notes || '',
-        dayOff: !!row.is_day_off
+        dayOff: supportsDayOffColumn ? !!row.is_day_off : false
       };
     });
 
@@ -599,16 +614,18 @@ async function loadAll(silent = false) {
     records = remoteRecords;
     saveLocal();
 
-    if (!silent) setSyncStatus('ok', `${(data || []).length} ligne(s)`);
+    if (!silent) setSyncStatus('ok', `${(data || []).length} ligne(s)` + (supportsDayOffColumn ? '' : ' · mode compatibilité'));
     const st = document.getElementById('setup-status');
-    if (st && !silent) st.textContent = '✅ Connecté à Supabase · ' + (data || []).length + ' ligne(s) chargée(s)';
+    if (st && !silent) st.textContent = supportsDayOffColumn
+      ? '✅ Connecté à Supabase · ' + (data || []).length + ' ligne(s) chargée(s)'
+      : '⚠️ Connecté, mais colonne is_day_off absente. La synchro horaires fonctionne. Exécute le SQL Config pour activer les jours chômés.';
     renderAll();
     startPollingFallback();
     if (silent && changed) setSyncStatus('realtime');
     return data || [];
   } catch(e) {
     console.error('Erreur lecture Supabase:', e);
-    if (!silent) setSyncStatus('offline');
+    if (!silent) setSyncStatus('offline', e.message || 'lecture impossible');
     const st = document.getElementById('setup-status');
     if (st && !silent) st.textContent = '❌ Erreur Supabase : ' + (e.message || JSON.stringify(e));
     renderAll();
@@ -649,27 +666,48 @@ async function runSyncDiagnostic() {
 async function upsertRecord(ds) {
   setSyncStatus('syncing');
   const r = records[ds] || {};
-  const payload = {
+
+  const buildPayload = (includeDayOff) => ({
     date: ds,
     arrival_time: r.arrival || null,
     departure_time: r.departure || null,
     notes: r.notes || null,
-    is_day_off: !!r.dayOff,
+    ...(includeDayOff ? { is_day_off: !!r.dayOff } : {}),
     updated_at: new Date().toISOString()
-  };
+  });
 
   try {
     await sbRequest('/rest/v1/attendance_records?on_conflict=date', {
       method: 'POST',
       headers: { 'Prefer': 'resolution=merge-duplicates,return=minimal' },
-      body: JSON.stringify(payload)
+      body: JSON.stringify(buildPayload(supportsDayOffColumn))
     });
     setSyncStatus('ok');
     setTimeout(() => loadAll(true), 300);
     return true;
   } catch(e) {
+    const msg = String(e.message || e);
+    if (supportsDayOffColumn && (msg.includes('is_day_off') || msg.includes('column'))) {
+      console.warn('Colonne is_day_off absente : retry écriture sans ce champ pour ne pas casser la synchro horaires.', e);
+      supportsDayOffColumn = false;
+      try {
+        await sbRequest('/rest/v1/attendance_records?on_conflict=date', {
+          method: 'POST',
+          headers: { 'Prefer': 'resolution=merge-duplicates,return=minimal' },
+          body: JSON.stringify(buildPayload(false))
+        });
+        setSyncStatus('ok', 'mode compatibilité');
+        const st = document.getElementById('setup-status');
+        if (st) st.textContent = '⚠️ Horaires synchronisés, mais colonne is_day_off absente. Exécute le SQL Config pour synchroniser les jours chômés.';
+        setTimeout(() => loadAll(true), 300);
+        return true;
+      } catch (retryError) {
+        console.error('Erreur écriture Supabase après retry sans is_day_off:', retryError);
+        e = retryError;
+      }
+    }
     console.error('Erreur écriture Supabase:', e);
-    setSyncStatus('offline');
+    setSyncStatus('offline', e.message || 'écriture impossible');
     const st = document.getElementById('setup-status');
     if (st) st.textContent = '❌ Erreur écriture Supabase : ' + (e.message || JSON.stringify(e));
     showToast('⚠️ Non synchronisé');
@@ -882,6 +920,9 @@ function saveRecord() {
   const dayOff = document.getElementById('modal-dayoff').checked;
   records[modalDate] = { arrival: a || null, departure: dep || null, notes, dayOff };
   saveLocal();
+  if (dayOff && !supportsDayOffColumn) {
+    showToast('⚠️ Jour chômé local seulement : exécute le SQL Config');
+  }
   upsertRecord(modalDate);
   closeModalDirect();
   renderAll();
