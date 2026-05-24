@@ -280,6 +280,54 @@
   .step-row { display: flex; align-items: flex-start; margin-bottom: 10px; }
   .step-text { font-size: 13px; line-height: 1.5; padding-top: 2px; }
 
+  /* ---- PIN SCREEN ---- */
+  .pin-overlay {
+    display: none; position: fixed; inset: 0; z-index: 999;
+    background: linear-gradient(160deg, #f0f7ff 0%, #fef9f0 100%);
+    flex-direction: column; align-items: center; justify-content: center;
+    padding: 40px 20px;
+  }
+  .pin-overlay.active { display: flex; }
+  .pin-logo { font-size: 48px; margin-bottom: 8px; }
+  .pin-title { font-size: 22px; font-weight: 700; color: #1a1a1a; margin-bottom: 4px; letter-spacing: -.3px; }
+  .pin-sub { font-size: 14px; color: #888; margin-bottom: 36px; }
+  .pin-dots { display: flex; gap: 14px; margin-bottom: 32px; }
+  .pin-dot {
+    width: 16px; height: 16px; border-radius: 50%;
+    border: 2px solid #ccc; background: transparent;
+    transition: background .15s, border-color .15s;
+  }
+  .pin-dot.filled { background: #185FA5; border-color: #185FA5; }
+  .pin-dot.error { background: #E24B4A; border-color: #E24B4A; animation: shake .3s ease; }
+  @keyframes shake {
+    0%,100% { transform: translateX(0); }
+    25% { transform: translateX(-6px); }
+    75% { transform: translateX(6px); }
+  }
+  .pin-keypad { display: grid; grid-template-columns: repeat(3, 72px); gap: 12px; }
+  .pin-key {
+    width: 72px; height: 72px; border-radius: 50%;
+    background: rgba(255,255,255,.85); border: 0.5px solid rgba(0,0,0,.1);
+    font-size: 24px; font-weight: 500; font-family: var(--font);
+    cursor: pointer; transition: transform .1s, background .1s;
+    display: flex; align-items: center; justify-content: center;
+    box-shadow: 0 2px 8px rgba(0,0,0,.06);
+  }
+  .pin-key:active { transform: scale(0.92); background: #e8f0fe; }
+  .pin-key.del { font-size: 20px; color: #888; }
+  .pin-key.empty { background: none; border: none; box-shadow: none; cursor: default; }
+  .pin-error-msg { font-size: 13px; color: #E24B4A; margin-top: 16px; min-height: 20px; font-weight: 500; }
+  .pin-offline-hint { font-size: 11px; color: #bbb; margin-top: 24px; text-align: center; max-width: 260px; line-height: 1.5; }
+
+  /* ---- PIN CONFIG ---- */
+  .pin-config-row { display: flex; flex-direction: column; gap: 10px; margin-bottom: 12px; }
+  .pin-config-input {
+    width: 100%; padding: 12px 14px; border-radius: 10px;
+    border: 0.5px solid rgba(0,0,0,.15); font-size: 20px;
+    font-family: var(--font); letter-spacing: 8px; text-align: center;
+    background: var(--color-background-primary, #fff);
+  }
+
   /* ---- DIVERSIFICATION ---- */
   :root {
     --div-veggie: #5A9E6F; --div-veggie-bg: #EDF7F1; --div-veggie-light: #C8E9D3;
@@ -392,6 +440,35 @@
 </style>
 </head>
 <body>
+
+<!-- PIN SCREEN -->
+<div class="pin-overlay" id="pin-overlay">
+  <div class="pin-logo">🔒</div>
+  <div class="pin-title">PAUL · Les Crocs Mignons</div>
+  <div class="pin-sub" id="pin-sub">Entrez votre code PIN</div>
+  <div class="pin-dots" id="pin-dots">
+    <div class="pin-dot" id="pd0"></div>
+    <div class="pin-dot" id="pd1"></div>
+    <div class="pin-dot" id="pd2"></div>
+    <div class="pin-dot" id="pd3"></div>
+  </div>
+  <div class="pin-keypad">
+    <button class="pin-key" onclick="pinKey('1')">1</button>
+    <button class="pin-key" onclick="pinKey('2')">2</button>
+    <button class="pin-key" onclick="pinKey('3')">3</button>
+    <button class="pin-key" onclick="pinKey('4')">4</button>
+    <button class="pin-key" onclick="pinKey('5')">5</button>
+    <button class="pin-key" onclick="pinKey('6')">6</button>
+    <button class="pin-key" onclick="pinKey('7')">7</button>
+    <button class="pin-key" onclick="pinKey('8')">8</button>
+    <button class="pin-key" onclick="pinKey('9')">9</button>
+    <button class="pin-key empty"></button>
+    <button class="pin-key" onclick="pinKey('0')">0</button>
+    <button class="pin-key del" onclick="pinDel()">⌫</button>
+  </div>
+  <div class="pin-error-msg" id="pin-error"></div>
+  <div class="pin-offline-hint" id="pin-offline-hint"></div>
+</div>
 
 <nav style="font-size:12px">
   <button class="active" onclick="switchTab('home')">Aujourd'hui</button>
@@ -571,6 +648,19 @@ FOR ALL USING (true) WITH CHECK (true);
 
 DROP POLICY IF EXISTS "acces_libre_paul_foods" ON paul_foods;
 CREATE POLICY "acces_libre_paul_foods" ON paul_foods
+FOR ALL USING (true) WITH CHECK (true);
+
+-- Table configuration générale (PIN, etc.)
+CREATE TABLE IF NOT EXISTS app_config (
+  key TEXT PRIMARY KEY,
+  value TEXT NOT NULL,
+  updated_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+ALTER TABLE app_config ENABLE ROW LEVEL SECURITY;
+
+DROP POLICY IF EXISTS "acces_libre_app_config" ON app_config;
+CREATE POLICY "acces_libre_app_config" ON app_config
 FOR ALL USING (true) WITH CHECK (true);</div>
 
   <div class="setup-section" style="padding-top:0">
@@ -579,6 +669,21 @@ FOR ALL USING (true) WITH CHECK (true);</div>
     <button class="exp-btn" onclick="forceRefreshFromSupabase()" style="width:100%;margin-bottom:8px">🔄 Forcer lecture Supabase</button>
     <button class="exp-btn" onclick="runSyncDiagnostic()" style="width:100%;margin-bottom:8px">🧪 Test synchro</button>
     <button class="exp-btn" onclick="runRegressionTests()" style="width:100%">✅ Tests non-régression</button>
+  </div>
+
+  <div class="setup-section">
+    <div class="setup-title">Code PIN</div>
+    <div class="setup-desc">Le PIN est partagé entre tous les appareils via Supabase. Il est stocké de façon sécurisée (hashé SHA-256).</div>
+    <div class="pin-config-row">
+      <label style="font-size:13px;color:#888;font-weight:500">PIN actuel</label>
+      <input class="pin-config-input" type="password" inputmode="numeric" maxlength="4" id="cfg-pin-old" placeholder="••••">
+      <label style="font-size:13px;color:#888;font-weight:500">Nouveau PIN (4 chiffres)</label>
+      <input class="pin-config-input" type="password" inputmode="numeric" maxlength="4" id="cfg-pin-new" placeholder="••••">
+      <label style="font-size:13px;color:#888;font-weight:500">Confirmer le nouveau PIN</label>
+      <input class="pin-config-input" type="password" inputmode="numeric" maxlength="4" id="cfg-pin-confirm" placeholder="••••">
+    </div>
+    <button class="exp-btn" onclick="changePin()" style="width:100%;background:#185FA5;color:#fff;border:none;font-weight:600">🔑 Changer le PIN</button>
+    <div id="cfg-pin-status" style="font-size:13px;color:#888;margin-top:8px;min-height:18px"></div>
   </div>
 </div>
 
@@ -1688,6 +1793,181 @@ function exportFoodPDF() {
    END DIVERSIFICATION
    ===================================================== */
 
+/* =====================================================
+   PIN AUTHENTICATION
+   ===================================================== */
+
+const PIN_SESSION_KEY = 'mam_pin_session_v1';
+const PIN_HASH_KEY    = 'mam_pin_hash_v1';
+const PIN_VALIDITY_MS = 90 * 24 * 60 * 60 * 1000; // 90 jours
+const DEFAULT_PIN     = '8687';
+
+let pinBuffer = '';
+let pinRemoteHash = null; // hash chargé depuis Supabase
+
+async function sha256(str) {
+  const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(str));
+  return Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2,'0')).join('');
+}
+
+/* Charge le hash depuis Supabase, fallback local */
+async function loadPinHash() {
+  try {
+    const data = await sbRequest('/rest/v1/app_config?key=eq.pin_hash&select=value');
+    if (data && data.length > 0) {
+      pinRemoteHash = data[0].value;
+      localStorage.setItem(PIN_HASH_KEY, pinRemoteHash);
+      return pinRemoteHash;
+    }
+  } catch(e) {
+    console.warn('PIN: fallback local (Supabase indisponible)', e);
+  }
+  // Fallback local
+  const local = localStorage.getItem(PIN_HASH_KEY);
+  if (local) { pinRemoteHash = local; return local; }
+  // Premier lancement : initialiser avec le PIN par défaut
+  const defaultHash = await sha256(DEFAULT_PIN);
+  await savePinHash(defaultHash);
+  return defaultHash;
+}
+
+async function savePinHash(hash) {
+  localStorage.setItem(PIN_HASH_KEY, hash);
+  pinRemoteHash = hash;
+  try {
+    await sbRequest('/rest/v1/app_config?on_conflict=key', {
+      method: 'POST',
+      headers: { 'Prefer': 'resolution=merge-duplicates,return=minimal' },
+      body: JSON.stringify({ key: 'pin_hash', value: hash, updated_at: new Date().toISOString() })
+    });
+  } catch(e) {
+    console.warn('PIN: sauvegarde Supabase échouée, hash conservé en local', e);
+    showToast('⚠️ PIN sauvegardé localement (Supabase indisponible)');
+  }
+}
+
+function isPinSessionValid() {
+  try {
+    const s = JSON.parse(localStorage.getItem(PIN_SESSION_KEY) || 'null');
+    if (!s || !s.ts) return false;
+    return (Date.now() - s.ts) < PIN_VALIDITY_MS;
+  } catch(e) { return false; }
+}
+
+function savePinSession() {
+  localStorage.setItem(PIN_SESSION_KEY, JSON.stringify({ ts: Date.now() }));
+}
+
+function clearPinSession() {
+  localStorage.removeItem(PIN_SESSION_KEY);
+}
+
+async function checkPinOnLoad() {
+  if (isPinSessionValid()) return; // session encore valide → accès direct
+  // Charger le hash (Supabase ou local)
+  const hintEl = document.getElementById('pin-offline-hint');
+  try {
+    await loadPinHash();
+    if (hintEl) hintEl.textContent = '';
+  } catch(e) {
+    if (hintEl) hintEl.textContent = 'Mode hors-ligne : le PIN local est utilisé.';
+  }
+  showPinScreen();
+}
+
+function showPinScreen() {
+  pinBuffer = '';
+  updatePinDots();
+  document.getElementById('pin-error').textContent = '';
+  document.getElementById('pin-overlay').classList.add('active');
+}
+
+function hidePinScreen() {
+  document.getElementById('pin-overlay').classList.remove('active');
+}
+
+function updatePinDots() {
+  for (let i = 0; i < 4; i++) {
+    const dot = document.getElementById('pd' + i);
+    if (dot) {
+      dot.classList.toggle('filled', i < pinBuffer.length);
+      dot.classList.remove('error');
+    }
+  }
+}
+
+function pinKey(digit) {
+  if (pinBuffer.length >= 4) return;
+  pinBuffer += digit;
+  updatePinDots();
+  if (pinBuffer.length === 4) validatePin();
+}
+
+function pinDel() {
+  if (pinBuffer.length > 0) {
+    pinBuffer = pinBuffer.slice(0, -1);
+    updatePinDots();
+    document.getElementById('pin-error').textContent = '';
+  }
+}
+
+async function validatePin() {
+  const hash = await sha256(pinBuffer);
+  const storedHash = pinRemoteHash || localStorage.getItem(PIN_HASH_KEY);
+
+  if (hash === storedHash) {
+    savePinSession();
+    hidePinScreen();
+  } else {
+    // Mauvais PIN
+    for (let i = 0; i < 4; i++) {
+      const dot = document.getElementById('pd' + i);
+      if (dot) { dot.classList.remove('filled'); dot.classList.add('error'); }
+    }
+    document.getElementById('pin-error').textContent = 'Code incorrect, réessaie.';
+    setTimeout(() => {
+      pinBuffer = '';
+      updatePinDots();
+      document.getElementById('pin-error').textContent = '';
+    }, 800);
+  }
+}
+
+async function changePin() {
+  const oldVal     = document.getElementById('cfg-pin-old').value.trim();
+  const newVal     = document.getElementById('cfg-pin-new').value.trim();
+  const confirmVal = document.getElementById('cfg-pin-confirm').value.trim();
+  const statusEl   = document.getElementById('cfg-pin-status');
+
+  if (!/^\d{4}$/.test(oldVal) || !/^\d{4}$/.test(newVal) || !/^\d{4}$/.test(confirmVal)) {
+    statusEl.textContent = '⚠️ Le PIN doit contenir exactement 4 chiffres.'; statusEl.style.color='#E24B4A'; return;
+  }
+  if (newVal !== confirmVal) {
+    statusEl.textContent = '⚠️ Les deux nouveaux PIN ne correspondent pas.'; statusEl.style.color='#E24B4A'; return;
+  }
+
+  const oldHash     = await sha256(oldVal);
+  const storedHash  = pinRemoteHash || localStorage.getItem(PIN_HASH_KEY);
+  if (oldHash !== storedHash) {
+    statusEl.textContent = '⚠️ PIN actuel incorrect.'; statusEl.style.color='#E24B4A'; return;
+  }
+
+  const newHash = await sha256(newVal);
+  await savePinHash(newHash);
+  clearPinSession();
+  savePinSession(); // nouvelle session avec nouveau PIN
+
+  document.getElementById('cfg-pin-old').value = '';
+  document.getElementById('cfg-pin-new').value = '';
+  document.getElementById('cfg-pin-confirm').value = '';
+  statusEl.textContent = '✅ PIN mis à jour avec succès.'; statusEl.style.color='#5A9E6F';
+  showToast('PIN mis à jour ✓');
+}
+
+/* =====================================================
+   END PIN
+   ===================================================== */
+
 function init() {
   calYear = today.getFullYear();
   calMonth = today.getMonth();
@@ -1700,6 +1980,7 @@ function init() {
     seedFoodsIfNeeded();
     loadPaulFoodsFromSupabase();
   });
+  checkPinOnLoad();
 }
 init();
 </script>
