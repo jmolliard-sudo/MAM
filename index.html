@@ -4,6 +4,38 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>PAUL · Les Crocs Mignons · Sync v3 REST</title>
+<!-- PWA / iPhone / Android Icons -->
+<meta name="theme-color" content="#D9DCC8">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="PAUL">
+<link rel="apple-touch-icon" sizes="180x180" href="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI1MTIiIGhlaWdodD0iNTEyIiB2aWV3Qm94PSIwIDAgNTEyIDUxMiI+CiAgPGRlZnM+CiAgICA8bGluZWFyR3JhZGllbnQgaWQ9ImJnIiB4MT0iMCUiIHkxPSIwJSIgeDI9IjEwMCUiIHkyPSIxMDAlIj4KICAgICAgPHN0b3Agb2Zmc2V0PSIwJSIgc3RvcC1jb2xvcj0iI0Y4RUVEQSIvPgogICAgICA8c3RvcCBvZmZzZXQ9IjEwMCUiIHN0b3AtY29sb3I9IiNEOUREQzgiLz4KICAgIDwvbGluZWFyR3JhZGllbnQ+CiAgICA8ZmlsdGVyIGlkPSJzaGFkb3ciIHg9Ii0yMCUiIHk9Ii0yMCUiIHdpZHRoPSIxNDAlIiBoZWlnaHQ9IjE0MCUiPgogICAgICA8ZmVEcm9wU2hhZG93IGR4PSIwIiBkeT0iOCIgc3RkRGV2aWF0aW9uPSIxMiIgZmxvb2QtY29sb3I9IiMwMDAwMDAyMiIvPgogICAgPC9maWx0ZXI+CiAgPC9kZWZzPgoKICA8cmVjdCB4PSIyNCIgeT0iMjQiIHdpZHRoPSI0NjQiIGhlaWdodD0iNDY0IiByeD0iMTA0IiBmaWxsPSJ1cmwoI2JnKSIvPgoKICA8cGF0aCBkPSJNMCwzNjBDMTIwLDI5MCAyMjAsNDEwIDM1MCwzMjBTNTEyLDM2MCA1MTIsMzYwVjUxMkgwWiIgZmlsbD0iI0M4Q0RBRSIvPgoKICA8cGF0aCBkPSJNMzIwLDAgQzQwMCw0MCA0NTAsMCA1MTIsODBWMGgtMTkyWiIgZmlsbD0iI0ZCRDJCRCIvPgoKICA8dGV4dCB4PSIxNzAiIHk9IjMyMCIgZm9udC1mYW1pbHk9Ii1hcHBsZS1zeXN0ZW0sQmxpbmtNYWNTeXN0ZW1Gb250LFNlZ29lIFVJLHNhbnMtc2VyaWYiIGZvbnQtc2l6ZT0iMjQwIiBmb250LXdlaWdodD0iNzAwIiBmaWxsPSJ3aGl0ZSIgZmlsdGVyPSJ1cmwoI3NoYWRvdykiPlA8L3RleHQ+CgogIDxnIHRyYW5zZm9ybT0idHJhbnNsYXRlKDMzMCwzMjApIHNjYWxlKDEuMikiIGZpbGw9IiM4Q0EwN0EiPgogICAgPGNpcmNsZSBjeD0iMCIgY3k9IjAiIHI9IjE4Ii8+CiAgICA8Y2lyY2xlIGN4PSItMjgiIGN5PSItMjQiIHI9IjEwIi8+CiAgICA8Y2lyY2xlIGN4PSIwIiBjeT0iLTM0IiByPSIxMCIvPgogICAgPGNpcmNsZSBjeD0iMjgiIGN5PSItMjQiIHI9IjEwIi8+CiAgICA8Y2lyY2xlIGN4PSI0MCIgY3k9IjAiIHI9IjEwIi8+CiAgPC9nPgoKICA8Y2lyY2xlIGN4PSI0MTIiIGN5PSIyMDQiIHI9IjYiIGZpbGw9IiNFN0E2NzEiLz4KPC9zdmc+">
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI1MTIiIGhlaWdodD0iNTEyIiB2aWV3Qm94PSIwIDAgNTEyIDUxMiI+CiAgPGRlZnM+CiAgICA8bGluZWFyR3JhZGllbnQgaWQ9ImJnIiB4MT0iMCUiIHkxPSIwJSIgeDI9IjEwMCUiIHkyPSIxMDAlIj4KICAgICAgPHN0b3Agb2Zmc2V0PSIwJSIgc3RvcC1jb2xvcj0iI0Y4RUVEQSIvPgogICAgICA8c3RvcCBvZmZzZXQ9IjEwMCUiIHN0b3AtY29sb3I9IiNEOUREQzgiLz4KICAgIDwvbGluZWFyR3JhZGllbnQ+CiAgPC9kZWZzPgoKICA8cmVjdCB4PSIyNCIgeT0iMjQiIHdpZHRoPSI0NjQiIGhlaWdodD0iNDY0IiByeD0iMTA0IiBmaWxsPSJ1cmwoI2JnKSIvPgoKICA8cGF0aCBkPSJNMCwzNjBDMTIwLDI5MCAyMjAsNDEwIDM1MCwzMjBTNTEyLDM2MCA1MTIsMzYwVjUxMkgwWiIgZmlsbD0iI0M4Q0RBRSIvPgoKICA8dGV4dCB4PSIxNzAiIHk9IjMyMCIgZm9udC1mYW1pbHk9Ii1hcHBsZS1zeXN0ZW1zLEJsaW5rTWFjU3lzdGVtRm9udCxTZWdvZSBVSSxzYW5zLXNlcmlmIiBmb250LXNpemU9IjI0MCIgZm9udC13ZWlnaHQ9IjcwMCIgZmlsbD0id2hpdGUiPlA8L3RleHQ+Cjwvc3ZnPg==">
+<link rel="manifest" href='data:application/json,{
+  "name":"PAUL · Les Crocs Mignons",
+  "short_name":"PAUL",
+  "display":"standalone",
+  "background_color":"#F8EEDA",
+  "theme_color":"#D9DCC8",
+  "start_url":"./",
+  "icons":[
+    {
+      "src":"data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI1MTIiIGhlaWdodD0iNTEyIiB2aWV3Qm94PSIwIDAgNTEyIDUxMiI+PHJlY3QgeD0iMjQiIHk9IjI0IiB3aWR0aD0iNDY0IiBoZWlnaHQ9IjQ2NCIgcng9IjEwNCIgZmlsbD0iI0Y4RUVEQSIvPjx0ZXh0IHg9IjE3MCIgeT0iMzIwIiBmb250LXNpemU9IjI0MCIgZm9udC13ZWlnaHQ9IjcwMCIgZmlsbD0id2hpdGUiPlA8L3RleHQ+PC9zdmc+",
+      "sizes":"512x512",
+      "type":"image/svg+xml",
+      "purpose":"any maskable"
+    }
+  ]
+}'>
+<script>
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.register(
+    URL.createObjectURL(
+      new Blob([`self.addEventListener('fetch', () => {});`], { type: 'text/javascript' })
+    )
+  );
+}
+</script>
 <style>
   * { box-sizing: border-box; margin: 0; padding: 0; }
   :root {
@@ -1743,8 +1775,8 @@ function exportFoodPDF() {
   @media print {
     body { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
     .no-print { display: none !important; }
-    @page { margin: 15mm; }
   }
+  @page { margin: 15mm; size: A4; }
   * { box-sizing: border-box; margin: 0; padding: 0; }
   body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #fafaf8; padding: 20px; }
   .page { max-width: 680px; margin: 0 auto; }
