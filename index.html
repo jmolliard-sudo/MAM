@@ -134,6 +134,23 @@
   .cal-cell.status-red .cd { color: var(--red); }
   .cal-cell.status-gray { background: var(--gray-bg); }
   .cal-cell.status-gray .cd { color: var(--gray); }
+  /* Gris différenciés : on ne mélange plus jours futurs, WE/fériés et jours chômés */
+  .cal-cell.status-future {
+    background: #FFFFFF;
+    border-color: rgba(0,0,0,0.08);
+    border-style: dashed;
+  }
+  .cal-cell.status-future .cd, .cal-cell.status-future .ct { color: #A7A7A0; }
+  .cal-cell.status-nonworking {
+    background: #F1EFE8;
+    border-color: rgba(0,0,0,0.06);
+  }
+  .cal-cell.status-nonworking .cd, .cal-cell.status-nonworking .ct { color: #77756F; }
+  .cal-cell.status-dayoff {
+    background: #E8E5DC;
+    border-color: rgba(0,0,0,0.10);
+  }
+  .cal-cell.status-dayoff .cd, .cal-cell.status-dayoff .ct { color: #55534D; font-weight: 600; }
   .cal-cell.status-today { background: var(--blue-bg); border-color: var(--blue-mid) !important; }
   .cal-cell.status-today .cd { color: var(--blue); }
   .cal-cell.status-green .ct { color: var(--green); }
@@ -333,7 +350,9 @@
     <div class="leg"><div class="leg-dot" style="background:var(--green-mid)"></div>Complet</div>
     <div class="leg"><div class="leg-dot" style="background:var(--orange-mid)"></div>Dépassement</div>
     <div class="leg"><div class="leg-dot" style="background:var(--red-mid)"></div>Incomplet</div>
-    <div class="leg"><div class="leg-dot" style="background:var(--gray-mid)"></div>Week-end / férié / attente</div>
+    <div class="leg"><div class="leg-dot" style="background:#E8E5DC;border:1px solid #D4D0C5"></div>Chômé</div>
+    <div class="leg"><div class="leg-dot" style="background:var(--gray-bg);border:1px solid #DCD8CD"></div>Week-end / férié</div>
+    <div class="leg"><div class="leg-dot" style="background:#fff;border:1px dashed #A7A7A0"></div>À venir</div>
   </div>
   <div class="export-row">
     <button class="exp-btn" onclick="exportCSV()">⬇ Export CSV</button>
@@ -543,6 +562,15 @@ function getStatus(r, ds) {
     return dur > 540 ? 'orange' : 'green';
   }
   return 'gray';
+}
+
+function getCalendarClass(r, ds) {
+  // Classe visuelle uniquement : le statut métier reste getStatus().
+  // Objectif : ne plus afficher les jours futurs comme les WE/fériés/chômés.
+  if (r && r.dayOff) return 'dayoff';
+  if (isNonWorkingDay(ds)) return 'nonworking';
+  if (ds > todayStr && (!r || (!r.arrival && !r.departure))) return 'future';
+  return getStatus(r, ds);
 }
 
 function getDuration(r) {
@@ -823,7 +851,8 @@ function renderCalendar() {
     if (dur && !r.dayOff) monthTotal += dur;
     if ((status === 'green' || status === 'orange') && !r.dayOff) completeCount++;
     const cell = document.createElement('div');
-    cell.className = 'cal-cell status-' + (isToday && !r.dayOff && !isNonWorkingDay(ds) ? 'today' : status);
+    const visualStatus = getCalendarClass(r, ds);
+    cell.className = 'cal-cell status-' + (isToday && !r.dayOff && !isNonWorkingDay(ds) ? 'today' : visualStatus);
     cell.onclick = () => openModal(ds);
     let info = '';
     if (r.arrival) info += `<div class="ct">${r.arrival}</div>`;
@@ -1002,6 +1031,9 @@ function runRegressionTests() {
   assert('Jour chômé passé sans horaire = gris', getStatus({ dayOff:true }, '2026-05-22') === 'gray');
   assert('Jour chômé avec horaires > 9h reste gris', getStatus({ dayOff:true, arrival:'08:00', departure:'18:30' }, '2026-05-22') === 'gray');
   assert('Label jour chômé prioritaire', getStatusLabel('gray', '2026-05-22', { dayOff:true }) === 'Jour chômé');
+  assert('Classe visuelle jour chômé distincte', getCalendarClass({ dayOff:true }, '2026-05-22') === 'dayoff');
+  assert('Classe visuelle week-end distincte', getCalendarClass({}, '2026-05-23') === 'nonworking');
+  assert('Classe visuelle futur distincte', getCalendarClass({}, '2099-05-26') === 'future');
 
   const failed = tests.filter(t => !t.ok);
   console.table(tests);
