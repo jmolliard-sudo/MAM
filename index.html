@@ -279,14 +279,125 @@
   }
   .step-row { display: flex; align-items: flex-start; margin-bottom: 10px; }
   .step-text { font-size: 13px; line-height: 1.5; padding-top: 2px; }
+
+  /* ---- DIVERSIFICATION ---- */
+  :root {
+    --div-veggie: #5A9E6F; --div-veggie-bg: #EDF7F1; --div-veggie-light: #C8E9D3;
+    --div-fruit: #E07A3A; --div-fruit-bg: #FEF4EC; --div-fruit-light: #FADDBB;
+    --div-starch: #C4A32A; --div-starch-bg: #FDFAEC; --div-starch-light: #F5E9A8;
+    --div-protein: #D95F5F; --div-protein-bg: #FDF0F0; --div-protein-light: #F5C5C5;
+    --div-misc: #8F6ABE; --div-misc-bg: #F4F0FB; --div-misc-light: #D9CCEE;
+  }
+  .div-header { padding: 24px 20px 8px; }
+  .div-header h2 { font-size: 22px; font-weight: 700; letter-spacing: -.4px; color: #1a1a1a; }
+  .div-header .div-sub { font-size: 13px; color: #888; margin-top: 4px; }
+  .div-counter {
+    margin: 0 16px 16px;
+    background: linear-gradient(135deg, #EDF7F1, #FEF4EC);
+    border-radius: 16px; padding: 16px 20px;
+    border: 0.5px solid rgba(0,0,0,0.06);
+  }
+  .div-counter-num { font-size: 32px; font-weight: 700; letter-spacing: -1px; color: #1a1a1a; }
+  .div-counter-label { font-size: 13px; color: #666; margin-top: 2px; }
+  .div-global-bar {
+    height: 8px; background: rgba(0,0,0,0.07); border-radius: 4px; margin-top: 12px; overflow: hidden;
+  }
+  .div-global-bar-fill {
+    height: 100%; border-radius: 4px;
+    background: linear-gradient(90deg, #5A9E6F, #E07A3A);
+    transition: width .4s ease;
+  }
+  .div-cat-cards { display: flex; gap: 8px; padding: 0 16px 12px; overflow-x: auto; scrollbar-width: none; }
+  .div-cat-cards::-webkit-scrollbar { display: none; }
+  .div-cat-card {
+    flex-shrink: 0; min-width: 90px; padding: 10px 12px; border-radius: 12px;
+    cursor: pointer; border: 1.5px solid transparent; transition: transform .15s, border-color .15s;
+  }
+  .div-cat-card:active { transform: scale(0.96); }
+  .div-cat-card.active { border-color: currentColor; }
+  .div-cat-card .dcc-emoji { font-size: 18px; }
+  .div-cat-card .dcc-name { font-size: 11px; font-weight: 600; margin-top: 4px; }
+  .div-cat-card .dcc-prog { font-size: 11px; opacity: 0.75; margin-top: 2px; }
+  .div-mini-bar { height: 4px; border-radius: 2px; background: rgba(0,0,0,0.1); margin-top: 6px; overflow: hidden; }
+  .div-mini-bar-fill { height: 100%; border-radius: 2px; transition: width .3s; }
+
+  .div-filter-label { padding: 0 16px 8px; font-size: 12px; color: #888; font-weight: 500; text-transform: uppercase; letter-spacing: .5px; }
+
+  .div-food-list { padding: 0 16px; display: flex; flex-direction: column; gap: 8px; }
+  .div-food-item {
+    border-radius: 14px; overflow: hidden;
+    border: 0.5px solid rgba(0,0,0,0.07);
+    background: #fff;
+    transition: transform .1s;
+  }
+  .div-food-item:active { transform: scale(0.98); }
+  .div-food-main {
+    display: flex; align-items: center; gap: 12px; padding: 13px 16px; cursor: pointer;
+  }
+  .div-food-check {
+    width: 22px; height: 22px; border-radius: 50%; border: 2px solid #ddd;
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0; transition: background .2s, border-color .2s;
+    font-size: 13px; color: #fff; cursor: pointer;
+  }
+  .div-food-check.checked { background: #5A9E6F; border-color: #5A9E6F; }
+  .div-food-check.checked::after { content: '✓'; }
+  .div-food-name { flex: 1; font-size: 15px; font-weight: 500; }
+  .div-food-name.eaten { color: #5A9E6F; }
+  .div-food-expand { font-size: 16px; color: #bbb; padding: 0 4px; }
+  .div-food-detail {
+    display: none; padding: 0 16px 14px;
+    border-top: 0.5px solid rgba(0,0,0,0.05);
+    background: var(--color-background-secondary, #f7f7f5);
+  }
+  .div-food-detail.open { display: block; }
+  .div-food-detail label { font-size: 12px; color: #888; display: block; margin-bottom: 4px; margin-top: 10px; font-weight: 500; }
+  .div-food-detail input[type=date], .div-food-detail input[type=text] {
+    width: 100%; padding: 8px 10px; border-radius: 8px;
+    border: 0.5px solid rgba(0,0,0,0.15); font-size: 14px;
+    font-family: var(--font); background: #fff; color: #1a1a1a;
+  }
+
+  .div-action-row { display: flex; gap: 10px; margin: 16px 16px 8px; }
+  .div-action-btn {
+    flex: 1; padding: 13px; border-radius: 12px; font-size: 14px; font-weight: 600;
+    font-family: var(--font); cursor: pointer; border: none;
+    transition: opacity .15s, transform .1s; text-align: center;
+  }
+  .div-action-btn:active { transform: scale(0.97); opacity: .85; }
+  .div-btn-pdf { background: #5A9E6F; color: #fff; }
+  .div-btn-email { background: var(--blue-bg); color: var(--blue); border: 0.5px solid var(--blue-mid); }
+  .div-empty { text-align: center; padding: 40px 20px; color: #aaa; font-size: 14px; }
+
+  /* Accordéon catégorie */
+  .div-cat-group { margin-bottom: 10px; border-radius: 14px; overflow: hidden; border: 0.5px solid rgba(0,0,0,0.07); }
+  .div-cat-group-header {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 13px 16px; cursor: pointer; user-select: none;
+    transition: opacity .15s;
+  }
+  .div-cat-group-header:active { opacity: .75; }
+  .div-cat-group-title { display: flex; align-items: center; gap: 8px; font-size: 14px; font-weight: 700; }
+  .div-cat-group-right { display: flex; align-items: center; gap: 8px; }
+  .div-cat-group-badge {
+    font-size: 11px; font-weight: 600; padding: 2px 8px; border-radius: 10px;
+    background: rgba(0,0,0,0.08); color: inherit; opacity: .85;
+  }
+  .div-cat-group-arrow { font-size: 12px; transition: transform .25s; opacity: .6; }
+  .div-cat-group-arrow.open { transform: rotate(180deg); }
+  .div-cat-group-body { display: none; background: #fff; }
+  .div-cat-group-body.open { display: block; }
+  .div-cat-group-body .div-food-item { border-radius: 0; border-left: none; border-right: none; border-bottom: none; }
+  .div-cat-group-body .div-food-item:first-child { border-top: 0.5px solid rgba(0,0,0,0.06); }
 </style>
 </head>
 <body>
 
-<nav>
+<nav style="font-size:12px">
   <button class="active" onclick="switchTab('home')">Aujourd'hui</button>
   <button onclick="switchTab('calendar')">Calendrier</button>
   <button onclick="switchTab('history')">Historique</button>
+  <button onclick="switchTab('diversification')">🥕 Diversif.</button>
   <button onclick="switchTab('setup')">Config</button>
 </nav>
 
@@ -369,6 +480,27 @@
   <div style="height:20px"></div>
 </div>
 
+<!-- DIVERSIFICATION -->
+<div id="tab-diversification" class="section">
+  <div class="div-header">
+    <h2>🥗 Diversification alimentaire</h2>
+    <div class="div-sub">Les aliments déjà goûtés par PAUL</div>
+  </div>
+  <div class="div-counter" id="div-counter">
+    <div class="div-counter-num" id="div-count-num">0</div>
+    <div class="div-counter-label">aliments goûtés sur <span id="div-count-total">0</span></div>
+    <div class="div-global-bar"><div class="div-global-bar-fill" id="div-global-fill" style="width:0%"></div></div>
+  </div>
+  <div class="div-cat-cards" id="div-cat-cards"></div>
+  <div class="div-filter-label" id="div-filter-label">Tous les aliments</div>
+  <div class="div-food-list" id="div-food-list"></div>
+  <div class="div-action-row">
+    <button class="div-action-btn div-btn-pdf" onclick="exportFoodPDF()">📄 Récap nounou</button>
+    <button class="div-action-btn div-btn-email" onclick="sendFoodEmail()">✉️ Envoyer à Leslie</button>
+  </div>
+  <div style="height:20px"></div>
+</div>
+
 <!-- SETUP -->
 <div id="tab-setup" class="section">
   <div class="setup-section">
@@ -378,7 +510,7 @@
     <div class="step-row"><span class="step-badge">2</span><span class="step-text">Copie et colle le SQL ci-dessous, puis clique <strong>Run</strong></span></div>
     <div class="step-row"><span class="step-badge">3</span><span class="step-text">Reviens ici → l'app se synchronise automatiquement ✓</span></div>
   </div>
-  <div class="sql-box">-- Table principale
+  <div class="sql-box" style="margin-top:0">-- Table principale
 CREATE TABLE IF NOT EXISTS attendance_records (
   id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
   date DATE NOT NULL UNIQUE,
@@ -406,6 +538,42 @@ CREATE POLICY "acces_libre" ON attendance_records
 -- Index performance
 CREATE INDEX IF NOT EXISTS idx_date
   ON attendance_records(date DESC);</div>
+
+  <div class="setup-section" style="padding-top:0">
+    <div class="setup-title">Diversification alimentaire</div>
+    <div class="setup-desc">Exécute ce SQL séparément pour créer les tables de diversification.</div>
+  </div>
+  <div class="sql-box">-- Tables diversification alimentaire
+CREATE TABLE IF NOT EXISTS foods (
+  id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+  category TEXT NOT NULL,
+  name TEXT NOT NULL,
+  min_age_months INTEGER,
+  created_at TIMESTAMPTZ DEFAULT NOW(),
+  UNIQUE(category, name)
+);
+
+CREATE TABLE IF NOT EXISTS paul_foods (
+  id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+  food_id UUID REFERENCES foods(id) ON DELETE CASCADE,
+  already_eaten BOOLEAN DEFAULT FALSE,
+  first_try_date DATE,
+  notes TEXT,
+  updated_at TIMESTAMPTZ DEFAULT NOW(),
+  UNIQUE(food_id)
+);
+
+ALTER TABLE foods ENABLE ROW LEVEL SECURITY;
+ALTER TABLE paul_foods ENABLE ROW LEVEL SECURITY;
+
+DROP POLICY IF EXISTS "acces_libre_foods" ON foods;
+CREATE POLICY "acces_libre_foods" ON foods
+FOR ALL USING (true) WITH CHECK (true);
+
+DROP POLICY IF EXISTS "acces_libre_paul_foods" ON paul_foods;
+CREATE POLICY "acces_libre_paul_foods" ON paul_foods
+FOR ALL USING (true) WITH CHECK (true);</div>
+
   <div class="setup-section" style="padding-top:0">
     <div class="setup-title" style="margin-bottom:8px">Statut de connexion</div>
     <div id="setup-status" style="font-size:13px;color:var(--color-text-secondary,#888);margin-bottom:10px">Vérification…</div>
@@ -964,11 +1132,12 @@ function closeModalDirect() { document.getElementById('modal').classList.remove(
 function switchTab(tab) {
   document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
   document.querySelectorAll('nav button').forEach((b,i) => {
-    b.classList.toggle('active', ['home','calendar','history','setup'][i] === tab);
+    b.classList.toggle('active', ['home','calendar','history','diversification','setup'][i] === tab);
   });
   document.getElementById('tab-'+tab).classList.add('active');
   if (tab === 'calendar') renderCalendar();
   if (tab === 'history') renderHistory();
+  if (tab === 'diversification') renderDiversification();
 }
 
 function showToast(msg) {
@@ -1035,6 +1204,23 @@ function runRegressionTests() {
   assert('Classe visuelle week-end distincte', getCalendarClass({}, '2026-05-23') === 'nonworking');
   assert('Classe visuelle futur distincte', getCalendarClass({}, '2099-05-26') === 'future');
 
+  // Diversification
+  assert('Onglet Diversification présent', !!document.getElementById('tab-diversification'));
+  assert('FOOD_SEED non vide', FOOD_SEED.length > 0);
+  assert('Catégorie Légumes présente', FOOD_SEED.some(f => f.category === 'Légumes'));
+  assert('Catégorie Fruits présente', FOOD_SEED.some(f => f.category === 'Fruits'));
+  assert('Catégorie Féculents présente', FOOD_SEED.some(f => f.category === 'Féculents'));
+  assert('Catégorie Protéines présente', FOOD_SEED.some(f => f.category === 'Protéines'));
+  assert('Catégorie Divers présente', FOOD_SEED.some(f => f.category === 'Divers'));
+  assert('savePaulFoodsLocal ne plante pas', (() => { try { savePaulFoodsLocal(); return true; } catch(e){ return false; } })());
+  assert('loadPaulFoodsLocal ne plante pas', (() => { try { loadPaulFoodsLocal(); return true; } catch(e){ return false; } })());
+  assert('exportFoodPDF est une fonction', typeof exportFoodPDF === 'function');
+  assert('toggleFood est une fonction', typeof toggleFood === 'function');
+  assert('upsertRecord toujours présent', typeof upsertRecord === 'function');
+  assert('loadAll toujours présent', typeof loadAll === 'function');
+  assert('getStatus inchangé', typeof getStatus === 'function');
+  assert('isHoliday inchangé', typeof isHoliday === 'function');
+
   const failed = tests.filter(t => !t.ok);
   console.table(tests);
   const st = document.getElementById('setup-status');
@@ -1050,14 +1236,476 @@ function runRegressionTests() {
   return { ok: failed.length === 0, tests };
 }
 
+/* =====================================================
+   DIVERSIFICATION ALIMENTAIRE
+   ===================================================== */
+
+const FOOD_SEED = [
+  // Légumes
+  { category: 'Légumes', name: 'artichaut' },
+  { category: 'Légumes', name: 'asperge' },
+  { category: 'Légumes', name: 'aubergine' },
+  { category: 'Légumes', name: 'avocat' },
+  { category: 'Légumes', name: 'blette' },
+  { category: 'Légumes', name: 'betterave' },
+  { category: 'Légumes', name: 'brocoli' },
+  { category: 'Légumes', name: 'carotte' },
+  { category: 'Légumes', name: 'céleri-branche' },
+  { category: 'Légumes', name: 'céleri-rave' },
+  { category: 'Légumes', name: 'champignon' },
+  { category: 'Légumes', name: 'chou blanc' },
+  { category: 'Légumes', name: 'chou de Bruxelles' },
+  { category: 'Légumes', name: 'chou rouge' },
+  { category: 'Légumes', name: 'chou vert' },
+  { category: 'Légumes', name: 'chou-fleur' },
+  { category: 'Légumes', name: 'chou-rave' },
+  { category: 'Légumes', name: 'citrouille' },
+  { category: 'Légumes', name: 'concombre' },
+  { category: 'Légumes', name: 'courgette' },
+  { category: 'Légumes', name: 'endive' },
+  { category: 'Légumes', name: 'épinards' },
+  { category: 'Légumes', name: 'fenouil' },
+  { category: 'Légumes', name: 'haricots verts' },
+  { category: 'Légumes', name: 'navet' },
+  { category: 'Légumes', name: 'oignon' },
+  { category: 'Légumes', name: 'panais' },
+  { category: 'Légumes', name: 'patate douce' },
+  { category: 'Légumes', name: 'pâtisson' },
+  { category: 'Légumes', name: 'petits pois' },
+  { category: 'Légumes', name: 'poireau' },
+  { category: 'Légumes', name: 'poivron' },
+  { category: 'Légumes', name: 'potimarron' },
+  { category: 'Légumes', name: 'potiron' },
+  { category: 'Légumes', name: 'radis' },
+  { category: 'Légumes', name: 'rutabaga' },
+  { category: 'Légumes', name: 'salade' },
+  { category: 'Légumes', name: 'salsifis' },
+  { category: 'Légumes', name: 'tomate' },
+  { category: 'Légumes', name: 'topinambour' },
+  // Fruits
+  { category: 'Fruits', name: 'abricot' },
+  { category: 'Fruits', name: 'amande' },
+  { category: 'Fruits', name: 'ananas' },
+  { category: 'Fruits', name: 'banane' },
+  { category: 'Fruits', name: 'cassis' },
+  { category: 'Fruits', name: 'cerise' },
+  { category: 'Fruits', name: 'châtaigne' },
+  { category: 'Fruits', name: 'citron' },
+  { category: 'Fruits', name: 'clémentine' },
+  { category: 'Fruits', name: 'coing' },
+  { category: 'Fruits', name: 'datte' },
+  { category: 'Fruits', name: 'figue' },
+  { category: 'Fruits', name: 'fraise' },
+  { category: 'Fruits', name: 'framboise' },
+  { category: 'Fruits', name: 'fruit de la passion' },
+  { category: 'Fruits', name: 'grenade' },
+  { category: 'Fruits', name: 'groseille' },
+  { category: 'Fruits', name: 'kaki' },
+  { category: 'Fruits', name: 'kiwi' },
+  { category: 'Fruits', name: 'litchi' },
+  { category: 'Fruits', name: 'mandarine' },
+  { category: 'Fruits', name: 'mangue' },
+  { category: 'Fruits', name: 'melon' },
+  { category: 'Fruits', name: 'mirabelle' },
+  { category: 'Fruits', name: 'mûre' },
+  { category: 'Fruits', name: 'myrtille' },
+  { category: 'Fruits', name: 'nectarine' },
+  { category: 'Fruits', name: 'noisette' },
+  { category: 'Fruits', name: 'noix' },
+  { category: 'Fruits', name: 'orange' },
+  { category: 'Fruits', name: 'pamplemousse' },
+  { category: 'Fruits', name: 'papaye' },
+  { category: 'Fruits', name: 'pastèque' },
+  { category: 'Fruits', name: 'pêche' },
+  { category: 'Fruits', name: 'poire' },
+  { category: 'Fruits', name: 'pomme' },
+  { category: 'Fruits', name: 'prune' },
+  { category: 'Fruits', name: 'pruneau' },
+  { category: 'Fruits', name: 'quetsche' },
+  { category: 'Fruits', name: 'raisin' },
+  { category: 'Fruits', name: 'rhubarbe' },
+  // Féculents
+  { category: 'Féculents', name: 'farine infantile' },
+  { category: 'Féculents', name: 'avoine' },
+  { category: 'Féculents', name: 'blé (farine)' },
+  { category: 'Féculents', name: 'fèves' },
+  { category: 'Féculents', name: 'haricots blancs' },
+  { category: 'Féculents', name: 'haricots rouges' },
+  { category: 'Féculents', name: 'lentilles corail' },
+  { category: 'Féculents', name: 'lentilles vertes' },
+  { category: 'Féculents', name: 'maïs (doux)' },
+  { category: 'Féculents', name: 'pain' },
+  { category: 'Féculents', name: 'pâtes' },
+  { category: 'Féculents', name: 'patate douce (féculent)' },
+  { category: 'Féculents', name: 'petits pois (féculent)' },
+  { category: 'Féculents', name: 'pois chiches' },
+  { category: 'Féculents', name: 'polenta' },
+  { category: 'Féculents', name: 'pomme de terre' },
+  { category: 'Féculents', name: 'quinoa' },
+  { category: 'Féculents', name: 'riz blanc' },
+  { category: 'Féculents', name: 'riz semi-complet' },
+  { category: 'Féculents', name: 'sarrasin' },
+  { category: 'Féculents', name: 'semoule / boulgour' },
+  { category: 'Féculents', name: 'tapioca' },
+  // Protéines animales
+  { category: 'Protéines', name: 'viande blanche' },
+  { category: 'Protéines', name: 'viande rouge' },
+  { category: 'Protéines', name: 'poisson maigre' },
+  { category: 'Protéines', name: 'poisson gras' },
+  { category: 'Protéines', name: 'œuf' },
+  { category: 'Protéines', name: 'fruits de mer cuits' },
+  { category: 'Protéines', name: 'charcuterie' },
+  // Divers
+  { category: 'Divers', name: 'miel' },
+  { category: 'Divers', name: 'yaourt' },
+  { category: 'Divers', name: 'fromage pasteurisé' },
+  { category: 'Divers', name: 'fromage au lait cru' },
+  { category: 'Divers', name: 'herbes et épices' },
+  { category: 'Divers', name: 'chocolat' },
+];
+
+const CAT_META = {
+  'Légumes':   { emoji: '🥦', color: 'var(--div-veggie)',   bg: 'var(--div-veggie-bg)',   fill: 'var(--div-veggie)' },
+  'Fruits':    { emoji: '🍎', color: 'var(--div-fruit)',    bg: 'var(--div-fruit-bg)',    fill: 'var(--div-fruit)' },
+  'Féculents': { emoji: '🌾', color: 'var(--div-starch)',   bg: 'var(--div-starch-bg)',   fill: 'var(--div-starch)' },
+  'Protéines': { emoji: '🥩', color: 'var(--div-protein)',  bg: 'var(--div-protein-bg)',  fill: 'var(--div-protein)' },
+  'Divers':    { emoji: '🍫', color: 'var(--div-misc)',     bg: 'var(--div-misc-bg)',     fill: 'var(--div-misc)' },
+};
+
+// paulFoods: map foodKey (category+name) -> { already_eaten, first_try_date, notes, food_id }
+let paulFoods = {};
+let divFilterCat = null; // null = all
+const PAUL_FOODS_KEY = 'mam_paul_foods_v1';
+
+function foodKey(category, name) { return category + '||' + name; }
+
+function savePaulFoodsLocal() {
+  localStorage.setItem(PAUL_FOODS_KEY, JSON.stringify(paulFoods));
+}
+
+function loadPaulFoodsLocal() {
+  try {
+    const raw = localStorage.getItem(PAUL_FOODS_KEY);
+    if (raw) paulFoods = JSON.parse(raw);
+  } catch(e) { paulFoods = {}; }
+}
+
+/* ---- Supabase food helpers ---- */
+async function seedFoodsIfNeeded() {
+  try {
+    const existing = await sbRequest('/rest/v1/foods?select=category,name');
+    const existingSet = new Set((existing || []).map(r => foodKey(r.category, r.name)));
+    const toInsert = FOOD_SEED.filter(f => !existingSet.has(foodKey(f.category, f.name)));
+    if (toInsert.length > 0) {
+      await sbRequest('/rest/v1/foods', {
+        method: 'POST',
+        headers: { 'Prefer': 'resolution=ignore-duplicates,return=minimal' },
+        body: JSON.stringify(toInsert)
+      });
+    }
+  } catch(e) {
+    console.warn('seedFoodsIfNeeded: Supabase indisponible, on continue en local.', e);
+  }
+}
+
+async function loadPaulFoodsFromSupabase() {
+  try {
+    const data = await sbRequest('/rest/v1/paul_foods?select=food_id,already_eaten,first_try_date,notes,foods(category,name)');
+    (data || []).forEach(row => {
+      if (!row.foods) return;
+      const k = foodKey(row.foods.category, row.foods.name);
+      paulFoods[k] = {
+        food_id: row.food_id,
+        already_eaten: !!row.already_eaten,
+        first_try_date: row.first_try_date || '',
+        notes: row.notes || ''
+      };
+    });
+    savePaulFoodsLocal();
+  } catch(e) {
+    console.warn('loadPaulFoodsFromSupabase: fallback local.', e);
+  }
+}
+
+async function upsertPaulFood(category, name) {
+  const k = foodKey(category, name);
+  const pf = paulFoods[k] || {};
+  try {
+    // Get food_id
+    let fid = pf.food_id;
+    if (!fid) {
+      const foods = await sbRequest(`/rest/v1/foods?category=eq.${encodeURIComponent(category)}&name=eq.${encodeURIComponent(name)}&select=id`);
+      if (foods && foods.length > 0) fid = foods[0].id;
+    }
+    if (!fid) return; // food not in DB yet
+    paulFoods[k] = { ...pf, food_id: fid };
+    savePaulFoodsLocal();
+    await sbRequest('/rest/v1/paul_foods?on_conflict=food_id', {
+      method: 'POST',
+      headers: { 'Prefer': 'resolution=merge-duplicates,return=minimal' },
+      body: JSON.stringify({
+        food_id: fid,
+        already_eaten: !!pf.already_eaten,
+        first_try_date: pf.first_try_date || null,
+        notes: pf.notes || null,
+        updated_at: new Date().toISOString()
+      })
+    });
+  } catch(e) {
+    console.warn('upsertPaulFood erreur Supabase:', e);
+    showToast('⚠️ Non synchronisé (données locales OK)');
+  }
+}
+
+/* ---- Rendering ---- */
+function renderDiversification() {
+  const eaten = FOOD_SEED.filter(f => paulFoods[foodKey(f.category, f.name)]?.already_eaten).length;
+  const total = FOOD_SEED.length;
+  const pct = total ? Math.round(eaten / total * 100) : 0;
+
+  document.getElementById('div-count-num').textContent = eaten;
+  document.getElementById('div-count-total').textContent = total;
+  document.getElementById('div-global-fill').style.width = pct + '%';
+
+  // Category cards
+  const cats = [...new Set(FOOD_SEED.map(f => f.category))];
+  const cardsEl = document.getElementById('div-cat-cards');
+  cardsEl.innerHTML = '';
+
+  // "Tous" pill
+  const allCard = document.createElement('div');
+  allCard.className = 'div-cat-card' + (divFilterCat === null ? ' active' : '');
+  allCard.style.cssText = 'background:#f5f5f3;color:#444;';
+  allCard.innerHTML = `<div class="dcc-emoji">✨</div><div class="dcc-name">Tous</div><div class="dcc-prog">${eaten}/${total}</div>`;
+  allCard.onclick = () => { divFilterCat = null; renderDiversification(); };
+  cardsEl.appendChild(allCard);
+
+  cats.forEach(cat => {
+    const meta = CAT_META[cat] || { emoji: '🍽️', color: '#888', bg: '#f5f5f3', fill: '#888' };
+    const catFoods = FOOD_SEED.filter(f => f.category === cat);
+    const catEaten = catFoods.filter(f => paulFoods[foodKey(f.category, f.name)]?.already_eaten).length;
+    const catPct = catFoods.length ? Math.round(catEaten / catFoods.length * 100) : 0;
+    const card = document.createElement('div');
+    card.className = 'div-cat-card' + (divFilterCat === cat ? ' active' : '');
+    card.style.cssText = `background:${meta.bg};color:${meta.color};`;
+    card.innerHTML = `<div class="dcc-emoji">${meta.emoji}</div><div class="dcc-name">${cat}</div><div class="dcc-prog">${catEaten}/${catFoods.length}</div><div class="div-mini-bar"><div class="div-mini-bar-fill" style="width:${catPct}%;background:${meta.fill}"></div></div>`;
+    card.onclick = () => { divFilterCat = divFilterCat === cat ? null : cat; renderDiversification(); };
+    cardsEl.appendChild(card);
+  });
+
+  // Filter label
+  const filterLabel = document.getElementById('div-filter-label');
+  filterLabel.textContent = divFilterCat ? `${CAT_META[divFilterCat]?.emoji || ''} ${divFilterCat}` : 'Tous les aliments';
+
+  // Food list
+  const listEl = document.getElementById('div-food-list');
+  listEl.innerHTML = '';
+  const filtered = divFilterCat ? FOOD_SEED.filter(f => f.category === divFilterCat) : FOOD_SEED;
+
+  if (filtered.length === 0) {
+    listEl.innerHTML = '<div class="div-empty">Aucun aliment</div>';
+    return;
+  }
+
+  // Group by category
+  let groups = {};
+  filtered.forEach(f => {
+    if (!groups[f.category]) groups[f.category] = [];
+    groups[f.category].push(f);
+  });
+
+  Object.entries(groups).forEach(([cat, foods]) => {
+    const meta = CAT_META[cat] || { emoji: '🍽️', color: '#888', bg: '#f5f5f3', fill: '#888' };
+    const catEaten = foods.filter(f => paulFoods[foodKey(f.category, f.name)]?.already_eaten).length;
+    const groupId = 'grp-' + cat.replace(/[^a-z0-9]/gi,'_');
+
+    // Si catégorie filtrée ou si c'est la seule, ouverte par défaut
+    const isOpen = !!divFilterCat || Object.keys(groups).length === 1;
+
+    const group = document.createElement('div');
+    group.className = 'div-cat-group';
+
+    const header = document.createElement('div');
+    header.className = 'div-cat-group-header';
+    header.style.cssText = `background:${meta.bg};color:${meta.color};`;
+    header.innerHTML = `
+      <div class="div-cat-group-title">${meta.emoji} ${cat}</div>
+      <div class="div-cat-group-right">
+        <span class="div-cat-group-badge">${catEaten}/${foods.length}</span>
+        <span class="div-cat-group-arrow ${isOpen ? 'open' : ''}">▼</span>
+      </div>`;
+    header.onclick = () => {
+      const body = document.getElementById(groupId);
+      const arrow = header.querySelector('.div-cat-group-arrow');
+      const nowOpen = body.classList.toggle('open');
+      arrow.classList.toggle('open', nowOpen);
+    };
+
+    const body = document.createElement('div');
+    body.className = 'div-cat-group-body' + (isOpen ? ' open' : '');
+    body.id = groupId;
+
+    foods.forEach(f => {
+      const k = foodKey(f.category, f.name);
+      const pf = paulFoods[k] || {};
+      const item = document.createElement('div');
+      item.className = 'div-food-item';
+      if (pf.already_eaten) item.style.background = meta.bg;
+
+      item.innerHTML = `
+        <div class="div-food-main">
+          <div class="div-food-check ${pf.already_eaten ? 'checked' : ''}" onclick="toggleFood('${f.category.replace(/'/g,"\\'")}','${f.name.replace(/'/g,"\\'")}',event)"></div>
+          <div class="div-food-name ${pf.already_eaten ? 'eaten' : ''}">${f.name}</div>
+          <div class="div-food-expand" onclick="toggleFoodDetail('${k.replace(/[^a-z0-9]/gi,'_')}',event)">⋯</div>
+        </div>
+        <div class="div-food-detail" id="det-${k.replace(/[^a-z0-9]/gi,'_')}">
+          <label>Premier essai</label>
+          <input type="date" value="${pf.first_try_date||''}" onchange="updateFoodDetail('${f.category.replace(/'/g,"\\'")}','${f.name.replace(/'/g,"\\'")}','date',this.value)">
+          <label>Note courte</label>
+          <input type="text" placeholder="Réaction, quantité…" value="${(pf.notes||'').replace(/"/g,'&quot;')}" onchange="updateFoodDetail('${f.category.replace(/'/g,"\\'")}','${f.name.replace(/'/g,"\\'")}','notes',this.value)">
+        </div>`;
+      body.appendChild(item);
+    });
+
+    group.appendChild(header);
+    group.appendChild(body);
+    listEl.appendChild(group);
+  });
+}
+
+function toggleFoodDetail(id, e) {
+  e.stopPropagation();
+  const det = document.getElementById('det-' + id);
+  if (det) det.classList.toggle('open');
+}
+
+function toggleFood(category, name, e) {
+  e.stopPropagation();
+  const k = foodKey(category, name);
+  if (!paulFoods[k]) paulFoods[k] = { already_eaten: false, first_try_date: '', notes: '' };
+  paulFoods[k].already_eaten = !paulFoods[k].already_eaten;
+  if (paulFoods[k].already_eaten && !paulFoods[k].first_try_date) {
+    paulFoods[k].first_try_date = fmt(new Date());
+  }
+  savePaulFoodsLocal();
+  upsertPaulFood(category, name);
+  renderDiversification();
+}
+
+function updateFoodDetail(category, name, field, value) {
+  const k = foodKey(category, name);
+  if (!paulFoods[k]) paulFoods[k] = { already_eaten: false, first_try_date: '', notes: '' };
+  if (field === 'date') paulFoods[k].first_try_date = value;
+  if (field === 'notes') paulFoods[k].notes = value;
+  savePaulFoodsLocal();
+  upsertPaulFood(category, name);
+}
+
+/* ---- PDF / Email ---- */
+function exportFoodPDF() {
+  const eaten = FOOD_SEED.filter(f => paulFoods[foodKey(f.category, f.name)]?.already_eaten);
+  if (eaten.length === 0) { showToast('Aucun aliment coché pour l\'instant'); return; }
+
+  const today_fr = new Date().toLocaleDateString('fr-FR', { day:'2-digit', month:'2-digit', year:'numeric' });
+  const cats = [...new Set(eaten.map(f => f.category))];
+
+  const catColors = {
+    'Légumes': '#EDF7F1', 'Fruits': '#FEF4EC', 'Féculents': '#FDFAEC',
+    'Protéines': '#FDF0F0', 'Divers': '#F4F0FB'
+  };
+  const catAccents = {
+    'Légumes': '#5A9E6F', 'Fruits': '#E07A3A', 'Féculents': '#C4A32A',
+    'Protéines': '#D95F5F', 'Divers': '#8F6ABE'
+  };
+  const catEmojis = { 'Légumes': '🥦', 'Fruits': '🍎', 'Féculents': '🌾', 'Protéines': '🥩', 'Divers': '🍫' };
+
+  let sections = '';
+  cats.forEach(cat => {
+    const foods = eaten.filter(f => f.category === cat);
+    const pf_list = foods.map(f => {
+      const pf = paulFoods[foodKey(f.category, f.name)] || {};
+      const date = pf.first_try_date ? ` <span style="color:#aaa;font-size:10px">${new Date(pf.first_try_date+'T12:00').toLocaleDateString('fr-FR')}</span>` : '';
+      const note = pf.notes ? ` <em style="color:#999;font-size:11px">· ${pf.notes}</em>` : '';
+      return `<li style="padding:4px 0;border-bottom:1px solid rgba(0,0,0,0.05)"><span style="color:${catAccents[cat]||'#333'};font-size:14px">✓</span> ${f.name}${date}${note}</li>`;
+    }).join('');
+    sections += `
+      <div style="margin-bottom:18px;border-radius:12px;overflow:hidden;box-shadow:0 1px 4px rgba(0,0,0,0.08)">
+        <div style="background:${catAccents[cat]||'#888'};color:#fff;padding:10px 16px;font-size:14px;font-weight:700;letter-spacing:.3px">
+          ${catEmojis[cat]||''} ${cat} <span style="font-weight:400;opacity:.85;font-size:12px">(${foods.length} aliment${foods.length>1?'s':''})</span>
+        </div>
+        <div style="background:${catColors[cat]||'#fff'};padding:8px 16px">
+          <ul style="list-style:none;margin:0;padding:0">${pf_list}</ul>
+        </div>
+      </div>`;
+  });
+
+  const html = `
+<!DOCTYPE html><html lang="fr"><head><meta charset="UTF-8">
+<title>Aliments de PAUL</title>
+<style>
+  @media print {
+    body { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+    .no-print { display: none; }
+    @page { margin: 15mm 15mm 15mm 15mm; }
+  }
+  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; margin: 0; padding: 24px; max-width: 800px; margin: 0 auto; background:#fafaf8; }
+  .header { background: linear-gradient(135deg, #EDF7F1, #FEF4EC); border-radius: 16px; padding: 24px 28px; margin-bottom: 24px; }
+  .header h1 { font-size: 22px; font-weight: 800; color: #1a1a1a; margin: 0 0 6px; }
+  .header .sub { font-size: 14px; color: #666; }
+  .header .date { font-size: 12px; color: #999; margin-top: 8px; }
+  .counter { display: inline-block; background: #5A9E6F; color: #fff; border-radius: 20px; padding: 4px 14px; font-size: 13px; font-weight: 700; margin-top: 10px; }
+  .print-btn { display: block; margin: 0 auto 20px; padding: 12px 32px; background: #5A9E6F; color: #fff; border: none; border-radius: 10px; font-size: 15px; font-weight: 600; cursor: pointer; }
+</style></head><body>
+<button class="print-btn no-print" onclick="window.print()">🖨️ Imprimer / Enregistrer en PDF</button>
+<div class="header">
+  <h1>🥗 Les aliments déjà goûtés par PAUL</h1>
+  <div class="sub">MAM Les Crocs Mignons · Leslie</div>
+  <div class="date">Généré le ${today_fr}</div>
+  <div class="counter">${eaten.length} aliment${eaten.length>1?'s':''} goûtés</div>
+</div>
+${sections}
+</body></html>`;
+
+  const win = window.open('', '_blank');
+  if (win) { win.document.write(html); win.document.close(); }
+  else showToast('Autorise les popups pour générer le PDF');
+}
+
+function sendFoodEmail() {
+  exportFoodPDF();
+  const today_fr = new Date().toLocaleDateString('fr-FR', { day:'2-digit', month:'2-digit', year:'numeric' });
+  setTimeout(() => {
+    showToast('📎 PDF généré. Ajoute-le en pièce jointe dans ton mail.');
+    const eaten = FOOD_SEED.filter(f => paulFoods[foodKey(f.category, f.name)]?.already_eaten);
+    let body = 'Bonjour Leslie,\n\nVoici la liste des aliments déjà goûtés par PAUL à ce jour.\n\n';
+    const cats = [...new Set(eaten.map(f => f.category))];
+    cats.forEach(cat => {
+      body += `${cat} :\n`;
+      eaten.filter(f => f.category === cat).forEach(f => { body += `• ${f.name}\n`; });
+      body += '\n';
+    });
+    body += 'Bonne journée,\nLes parents de PAUL';
+    const subject = encodeURIComponent(`Liste des aliments déjà goûtés par PAUL - ${today_fr}`);
+    window.location.href = `mailto:?subject=${subject}&body=${encodeURIComponent(body)}`;
+  }, 600);
+}
+
+/* =====================================================
+   END DIVERSIFICATION
+   ===================================================== */
+
 function init() {
   calYear = today.getFullYear();
   calMonth = today.getMonth();
   updateClock();
   setInterval(updateClock, 15000);
   renderHome();
+  loadPaulFoodsLocal();
   runRegressionTests();
-  loadAll();
+  loadAll().then(() => {
+    seedFoodsIfNeeded();
+    loadPaulFoodsFromSupabase();
+  });
 }
 init();
 </script>
