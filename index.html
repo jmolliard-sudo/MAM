@@ -324,7 +324,7 @@
     <div class="leg"><div class="leg-dot" style="background:var(--green-mid)"></div>Complet</div>
     <div class="leg"><div class="leg-dot" style="background:var(--orange-mid)"></div>Dépassement</div>
     <div class="leg"><div class="leg-dot" style="background:var(--red-mid)"></div>Incomplet</div>
-    <div class="leg"><div class="leg-dot" style="background:var(--gray-mid)"></div>En attente</div>
+    <div class="leg"><div class="leg-dot" style="background:var(--gray-mid)"></div>Week-end / férié / attente</div>
   </div>
   <div class="export-row">
     <button class="exp-btn" onclick="exportCSV()">⬇ Export CSV</button>
@@ -377,7 +377,8 @@ CREATE INDEX IF NOT EXISTS idx_date
     <div class="setup-title" style="margin-bottom:8px">Statut de connexion</div>
     <div id="setup-status" style="font-size:13px;color:var(--color-text-secondary,#888);margin-bottom:10px">Vérification…</div>
     <button class="exp-btn" onclick="forceRefreshFromSupabase()" style="width:100%;margin-bottom:8px">🔄 Forcer lecture Supabase</button>
-    <button class="exp-btn" onclick="runSyncDiagnostic()" style="width:100%">🧪 Test synchro</button>
+    <button class="exp-btn" onclick="runSyncDiagnostic()" style="width:100%;margin-bottom:8px">🧪 Test synchro</button>
+    <button class="exp-btn" onclick="runRegressionTests()" style="width:100%">✅ Tests non-régression</button>
   </div>
 </div>
 
@@ -435,7 +436,10 @@ let lastRemoteSignature = '';
 const today = new Date();
 const todayStr = fmt(today);
 
-function fmt(d) { return d.toISOString().slice(0,10); }
+function fmt(d) {
+  // Date locale, pas UTC : évite de basculer sur la veille tôt le matin en Europe/Paris.
+  return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+}
 function fmtTime(d) { return d.toTimeString().slice(0,5); }
 function minsToHM(m) {
   if (m === null || m === undefined) return '—';
@@ -443,7 +447,70 @@ function minsToHM(m) {
   return mn === 0 ? h+'h' : h+'h'+String(mn).padStart(2,'0');
 }
 
+function addDays(date, days) {
+  const d = new Date(date);
+  d.setDate(d.getDate() + days);
+  return d;
+}
+
+function getEasterDate(year) {
+  // Algorithme de Meeus/Jones/Butcher pour Pâques grégorien.
+  const a = year % 19;
+  const b = Math.floor(year / 100);
+  const c = year % 100;
+  const d = Math.floor(b / 4);
+  const e = b % 4;
+  const f = Math.floor((b + 8) / 25);
+  const g = Math.floor((b - f + 1) / 3);
+  const h = (19 * a + b - d - g + 15) % 30;
+  const i = Math.floor(c / 4);
+  const k = c % 4;
+  const l = (32 + 2 * e + 2 * i - h - k) % 7;
+  const m = Math.floor((a + 11 * h + 22 * l) / 451);
+  const month = Math.floor((h + l - 7 * m + 114) / 31) - 1;
+  const day = ((h + l - 7 * m + 114) % 31) + 1;
+  return new Date(year, month, day);
+}
+
+function getFrenchHolidays(year) {
+  const easter = getEasterDate(year);
+  return new Set([
+    `${year}-01-01`, // Jour de l'an
+    fmt(addDays(easter, 1)),  // Lundi de Pâques
+    `${year}-05-01`, // Fête du Travail
+    `${year}-05-08`, // Victoire 1945
+    fmt(addDays(easter, 39)), // Ascension
+    fmt(addDays(easter, 50)), // Lundi de Pentecôte
+    `${year}-07-14`, // Fête nationale
+    `${year}-08-15`, // Assomption
+    `${year}-11-01`, // Toussaint
+    `${year}-11-11`, // Armistice
+    `${year}-12-25`  // Noël
+  ]);
+}
+
+function isWeekend(ds) {
+  const d = new Date(ds + 'T12:00:00');
+  return d.getDay() === 0 || d.getDay() === 6;
+}
+
+function isHoliday(ds) {
+  const year = Number(ds.slice(0,4));
+  return getFrenchHolidays(year).has(ds);
+}
+
+function isNonWorkingDay(ds) {
+  return isWeekend(ds) || isHoliday(ds);
+}
+
+function getStatusLabel(status, ds) {
+  if (status === 'gray' && isNonWorkingDay(ds)) return isHoliday(ds) ? 'Jour férié' : 'Week-end';
+  return { green:'Complet', orange:'Dépassement', red:'Incomplet', gray:'En attente' }[status] || '—';
+}
+
 function getStatus(r, ds) {
+  // Les week-ends et jours fériés ne doivent jamais être signalés en rouge.
+  if (isNonWorkingDay(ds)) return 'gray';
   if (!r || (!r.arrival && !r.departure)) return ds < todayStr ? 'red' : 'gray';
   if (r.arrival && !r.departure) return ds < todayStr ? 'red' : 'gray';
   if (r.arrival && r.departure) {
@@ -694,6 +761,7 @@ function renderCalendar() {
     if (r.arrival) info += `<div class="ct">${r.arrival}</div>`;
     if (r.departure) info += `<div class="ct">${r.departure}</div>`;
     if (dur) info += `<div class="ct" style="font-weight:600">${minsToHM(dur)}</div>`;
+    if (!r.arrival && !r.departure && isNonWorkingDay(ds)) info += `<div class="ct">${isHoliday(ds) ? 'Férié' : 'WE'}</div>`;
     cell.innerHTML = `<div class="cd">${day}</div>${info}`;
     grid.appendChild(cell);
   }
@@ -805,12 +873,11 @@ function exportCSV() {
   const months = ['Janvier','Février','Mars','Avril','Mai','Juin','Juillet','Août','Septembre','Octobre','Novembre','Décembre'];
   let csv = 'Date,Arrivée,Départ,Durée,Statut,Notes\n';
   const lastDay = new Date(calYear, calMonth+1, 0);
-  const statusLabel = { green:'Complet', orange:'Dépassement', red:'Incomplet', gray:'En attente' };
   for (let day = 1; day <= lastDay.getDate(); day++) {
     const ds = `${calYear}-${String(calMonth+1).padStart(2,'0')}-${String(day).padStart(2,'0')}`;
     const r = records[ds] || {};
     const dur = getDuration(r);
-    csv += `${ds},${r.arrival||''},${r.departure||''},${dur?minsToHM(dur):''},${statusLabel[getStatus(r,ds)]},${r.notes||''}\n`;
+    csv += `${ds},${r.arrival||''},${r.departure||''},${dur?minsToHM(dur):''},${getStatusLabel(getStatus(r,ds), ds)},${r.notes||''}\n`;
   }
   const a = Object.assign(document.createElement('a'), { href: URL.createObjectURL(new Blob([csv], {type:'text/csv'})), download: `PAUL_MAM_${calYear}-${String(calMonth+1).padStart(2,'0')}.csv` });
   a.click(); showToast('CSV exporté ✓');
@@ -819,7 +886,6 @@ function exportCSV() {
 function exportPrint() {
   const months = ['Janvier','Février','Mars','Avril','Mai','Juin','Juillet','Août','Septembre','Octobre','Novembre','Décembre'];
   const colors = { green:'#3B6D11', orange:'#854F0B', red:'#A32D2D', gray:'#888780' };
-  const sl = { green:'Complet', orange:'Dépassement', red:'Incomplet', gray:'—' };
   const dnames = ['Dim','Lun','Mar','Mer','Jeu','Ven','Sam'];
   let rows = '', total = 0;
   const lastDay = new Date(calYear, calMonth+1, 0);
@@ -830,11 +896,44 @@ function exportPrint() {
     const d = new Date(ds+'T12:00:00');
     if (dur) total += dur;
     const st = getStatus(r, ds);
-    rows += `<tr><td>${dnames[d.getDay()]} ${day}</td><td>${r.arrival||'—'}</td><td>${r.departure||'—'}</td><td>${dur?minsToHM(dur):'—'}</td><td style="color:${colors[st]};font-weight:600">${sl[st]}</td><td>${r.notes||''}</td></tr>`;
+    rows += `<tr><td>${dnames[d.getDay()]} ${day}</td><td>${r.arrival||'—'}</td><td>${r.departure||'—'}</td><td>${dur?minsToHM(dur):'—'}</td><td style="color:${colors[st]};font-weight:600">${getStatusLabel(st, ds)}</td><td>${r.notes||''}</td></tr>`;
   }
   const win = window.open('','_blank');
   win.document.write(`<html><head><title>PAUL MAM ${months[calMonth]} ${calYear}</title><style>body{font-family:sans-serif;padding:20px}h1{font-size:18px;margin-bottom:16px}table{width:100%;border-collapse:collapse;font-size:13px}th,td{border:1px solid #ddd;padding:6px 8px}th{background:#f5f5f5;font-weight:600}tfoot td{font-weight:bold;background:#f0f0f0}</style></head><body><h1>PAUL · Les Crocs Mignons · ${months[calMonth]} ${calYear}</h1><table><thead><tr><th>Jour</th><th>Arrivée</th><th>Départ</th><th>Durée</th><th>Statut</th><th>Note</th></tr></thead><tbody>${rows}</tbody><tfoot><tr><td colspan="3">Total mensuel</td><td>${minsToHM(total)}</td><td colspan="2"></td></tr></tfoot></table></body></html>`);
   win.print();
+}
+
+
+function runRegressionTests() {
+  const tests = [];
+  function assert(name, condition) { tests.push({ name, ok: !!condition }); }
+
+  assert('Pâques 2026 = 2026-04-05', fmt(getEasterDate(2026)) === '2026-04-05');
+  assert('Lundi de Pâques 2026 férié', isHoliday('2026-04-06'));
+  assert('Ascension 2026 fériée', isHoliday('2026-05-14'));
+  assert('Lundi de Pentecôte 2026 férié', isHoliday('2026-05-25'));
+  assert('14 juillet 2026 férié', isHoliday('2026-07-14'));
+  assert('Samedi détecté week-end', isWeekend('2026-05-23'));
+  assert('Dimanche détecté week-end', isWeekend('2026-05-24'));
+  assert('Jour férié passé sans horaire = gris', getStatus({}, '2026-05-14') === 'gray');
+  assert('Week-end passé sans horaire = gris', getStatus({}, '2026-05-23') === 'gray');
+  assert('Jour ouvré passé sans horaire = rouge', getStatus({}, '2026-05-22') === 'red');
+  assert('Journée complète 9h00 = vert', getStatus({ arrival:'08:40', departure:'17:40' }, '2026-05-22') === 'green');
+  assert('Journée complète 9h01 = orange', getStatus({ arrival:'08:39', departure:'17:40' }, '2026-05-22') === 'orange');
+
+  const failed = tests.filter(t => !t.ok);
+  console.table(tests);
+  const st = document.getElementById('setup-status');
+  if (failed.length) {
+    console.error('Tests non-régression échoués', failed);
+    if (st) st.textContent = `❌ ${failed.length} test(s) non-régression échoué(s). Voir console.`;
+    showToast('Tests KO · voir console');
+  } else {
+    console.log('✅ Tests non-régression OK');
+    if (st) st.textContent = '✅ Tests non-régression OK';
+    showToast('Tests non-régression OK');
+  }
+  return { ok: failed.length === 0, tests };
 }
 
 function init() {
@@ -843,6 +942,7 @@ function init() {
   updateClock();
   setInterval(updateClock, 15000);
   renderHome();
+  runRegressionTests();
   loadAll();
 }
 init();
