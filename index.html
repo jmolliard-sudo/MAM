@@ -199,6 +199,15 @@
     color: var(--color-text-primary, #1a1a1a);
   }
   .field textarea { height: 72px; resize: none; }
+  .dayoff-box {
+    display: flex; align-items: center; gap: 10px;
+    background: var(--color-background-secondary, #f7f7f5);
+    border: 0.5px solid var(--color-border-tertiary, rgba(0,0,0,.08));
+    border-radius: 12px; padding: 12px 14px; margin-bottom: 18px;
+  }
+  .dayoff-box input { width: 20px; height: 20px; accent-color: var(--accent); }
+  .dayoff-box label { font-size: 14px; font-weight: 600; cursor: pointer; }
+  .dayoff-box .hint { font-size: 12px; color: var(--color-text-secondary,#888); margin-top: 2px; font-weight: 400; }
   .modal-computed {
     display: flex; align-items: center; justify-content: space-between;
     background: var(--color-background-secondary, #f7f7f5);
@@ -345,7 +354,7 @@
 <div id="tab-setup" class="section">
   <div class="setup-section">
     <div class="setup-title">Configuration Supabase</div>
-    <div class="setup-desc">Exécute ce SQL dans ton éditeur Supabase pour créer la table et activer la synchronisation temps réel.</div>
+    <div class="setup-desc">Exécute ce SQL dans ton éditeur Supabase pour créer ou mettre à jour la table.</div>
     <div class="step-row"><span class="step-badge">1</span><span class="step-text">Ouvre <strong>supabase.com</strong> → ton projet → <strong>SQL Editor</strong></span></div>
     <div class="step-row"><span class="step-badge">2</span><span class="step-text">Copie et colle le SQL ci-dessous, puis clique <strong>Run</strong></span></div>
     <div class="step-row"><span class="step-badge">3</span><span class="step-text">Reviens ici → l'app se synchronise automatiquement ✓</span></div>
@@ -357,8 +366,13 @@ CREATE TABLE IF NOT EXISTS attendance_records (
   arrival_time TIME,
   departure_time TIME,
   notes TEXT,
+  is_day_off BOOLEAN DEFAULT FALSE,
   updated_at TIMESTAMPTZ DEFAULT NOW()
 );
+
+-- Mise à jour si la table existe déjà depuis une ancienne version
+ALTER TABLE attendance_records
+  ADD COLUMN IF NOT EXISTS is_day_off BOOLEAN DEFAULT FALSE;
 
 -- Activer Realtime
 -- Realtime non nécessaire dans cette version REST/polling.
@@ -403,6 +417,13 @@ CREATE INDEX IF NOT EXISTS idx_date
       <div class="modal-computed">
         <span>Durée calculée</span>
         <span class="mc-dur" id="modal-duration">—</span>
+      </div>
+      <div class="dayoff-box">
+        <input type="checkbox" id="modal-dayoff" onchange="updateModalDuration()">
+        <div>
+          <label for="modal-dayoff">Jour chômé</label>
+          <div class="hint">Fermeture, vacances, absence prévue : le jour reste gris.</div>
+        </div>
       </div>
       <div class="field">
         <label>Note (optionnel)</label>
@@ -503,12 +524,15 @@ function isNonWorkingDay(ds) {
   return isWeekend(ds) || isHoliday(ds);
 }
 
-function getStatusLabel(status, ds) {
+function getStatusLabel(status, ds, r = null) {
+  if (r && r.dayOff) return 'Jour chômé';
   if (status === 'gray' && isNonWorkingDay(ds)) return isHoliday(ds) ? 'Jour férié' : 'Week-end';
   return { green:'Complet', orange:'Dépassement', red:'Incomplet', gray:'En attente' }[status] || '—';
 }
 
 function getStatus(r, ds) {
+  // Un jour chômé manuel reste toujours gris et sort du contrôle.
+  if (r && r.dayOff) return 'gray';
   // Les week-ends et jours fériés ne doivent jamais être signalés en rouge.
   if (isNonWorkingDay(ds)) return 'gray';
   if (!r || (!r.arrival && !r.departure)) return ds < todayStr ? 'red' : 'gray';
@@ -558,13 +582,14 @@ async function sbRequest(path, options = {}) {
 async function loadAll(silent = false) {
   if (!silent) setSyncStatus('syncing');
   try {
-    const data = await sbRequest('/rest/v1/attendance_records?select=date,arrival_time,departure_time,notes,updated_at&order=date.desc');
+    const data = await sbRequest('/rest/v1/attendance_records?select=date,arrival_time,departure_time,notes,is_day_off,updated_at&order=date.desc');
     const remoteRecords = {};
     (data || []).forEach(row => {
       remoteRecords[row.date] = {
         arrival: row.arrival_time ? row.arrival_time.slice(0,5) : null,
         departure: row.departure_time ? row.departure_time.slice(0,5) : null,
-        notes: row.notes || ''
+        notes: row.notes || '',
+        dayOff: !!row.is_day_off
       };
     });
 
@@ -629,6 +654,7 @@ async function upsertRecord(ds) {
     arrival_time: r.arrival || null,
     departure_time: r.departure || null,
     notes: r.notes || null,
+    is_day_off: !!r.dayOff,
     updated_at: new Date().toISOString()
   };
 
@@ -680,8 +706,11 @@ function renderHome() {
   depEl.textContent = r.departure || '—';
   depEl.className = 'today-val' + (!r.departure ? ' muted' : '');
   const dur = getDuration(r);
-  durEl.textContent = dur !== null ? minsToHM(dur) : '—';
-  if (!r.arrival) {
+  durEl.textContent = r.dayOff ? 'Jour chômé' : (dur !== null ? minsToHM(dur) : '—');
+  if (r.dayOff) {
+    btn.textContent = 'Jour chômé';
+    btn.className = 'main-btn done'; btn.disabled = true;
+  } else if (!r.arrival) {
     btn.textContent = 'Arrivée à la MAM';
     btn.className = 'main-btn arrive'; btn.disabled = false;
   } else if (!r.departure) {
@@ -709,7 +738,7 @@ function renderWeek() {
     const r = records[ds] || {};
     const dur = getDuration(r);
     const status = getStatus(r, ds);
-    if (dur) weekTotal += dur;
+    if (dur && !r.dayOff) weekTotal += dur;
     const div = document.createElement('div');
     div.className = 'wd' + (ds === todayStr ? ' today-col' : '');
     div.innerHTML = `<div class="wd-name">${dayNames[i]}</div><div class="wd-dot" style="background:${colors[status]}"></div><div class="wd-dur" style="color:${colors[status]}">${dur ? minsToHM(dur) : '·'}</div>`;
@@ -722,6 +751,7 @@ function renderWeek() {
 
 function handleMainBtn() {
   const r = records[todayStr] || {};
+  if (r.dayOff) { showToast('Jour chômé'); return; }
   const now = fmtTime(new Date());
   if (!r.arrival) {
     records[todayStr] = { ...r, arrival: now };
@@ -752,16 +782,17 @@ function renderCalendar() {
     const dur = getDuration(r);
     const status = getStatus(r, ds);
     const isToday = ds === todayStr;
-    if (dur) monthTotal += dur;
-    if (status === 'green' || status === 'orange') completeCount++;
+    if (dur && !r.dayOff) monthTotal += dur;
+    if ((status === 'green' || status === 'orange') && !r.dayOff) completeCount++;
     const cell = document.createElement('div');
-    cell.className = 'cal-cell status-' + (isToday ? 'today' : status);
+    cell.className = 'cal-cell status-' + (isToday && !r.dayOff && !isNonWorkingDay(ds) ? 'today' : status);
     cell.onclick = () => openModal(ds);
     let info = '';
     if (r.arrival) info += `<div class="ct">${r.arrival}</div>`;
     if (r.departure) info += `<div class="ct">${r.departure}</div>`;
-    if (dur) info += `<div class="ct" style="font-weight:600">${minsToHM(dur)}</div>`;
-    if (!r.arrival && !r.departure && isNonWorkingDay(ds)) info += `<div class="ct">${isHoliday(ds) ? 'Férié' : 'WE'}</div>`;
+    if (dur && !r.dayOff) info += `<div class="ct" style="font-weight:600">${minsToHM(dur)}</div>`;
+    if (r.dayOff) info += `<div class="ct">Chômé</div>`;
+    else if (!r.arrival && !r.departure && isNonWorkingDay(ds)) info += `<div class="ct">${isHoliday(ds) ? 'Férié' : 'WE'}</div>`;
     cell.innerHTML = `<div class="cd">${day}</div>${info}`;
     grid.appendChild(cell);
   }
@@ -803,7 +834,7 @@ function renderHistory() {
     item.innerHTML = `<div class="hist-dot" style="background:${colors[status]}"></div>
       <div class="hist-main">
         <div class="hist-date">${days[d.getDay()]} ${d.getDate()}/${String(d.getMonth()+1).padStart(2,'0')}/${d.getFullYear()}</div>
-        <div class="hist-times">${r.arrival||'?'} → ${r.departure||'?'}${r.notes ? ' · '+r.notes : ''}</div>
+        <div class="hist-times">${r.dayOff ? 'Jour chômé' : ((r.arrival||'?') + ' → ' + (r.departure||'?'))}${r.notes ? ' · '+r.notes : ''}</div>
       </div>
       <div class="hist-dur" style="color:${colors[status]}">${dur ? minsToHM(dur) : '—'}</div>`;
     list.appendChild(item);
@@ -821,11 +852,17 @@ function openModal(ds) {
   document.getElementById('modal-arrival').value = r.arrival || '';
   document.getElementById('modal-departure').value = r.departure || '';
   document.getElementById('modal-notes').value = r.notes || '';
+  document.getElementById('modal-dayoff').checked = !!r.dayOff;
   updateModalDuration();
   document.getElementById('modal').classList.add('open');
 }
 
 function updateModalDuration() {
+  const dayOff = document.getElementById('modal-dayoff')?.checked;
+  if (dayOff) {
+    document.getElementById('modal-duration').textContent = 'Jour chômé';
+    return;
+  }
   const a = document.getElementById('modal-arrival').value;
   const dep = document.getElementById('modal-departure').value;
   if (a && dep) {
@@ -842,7 +879,8 @@ function saveRecord() {
   const a = document.getElementById('modal-arrival').value;
   const dep = document.getElementById('modal-departure').value;
   const notes = document.getElementById('modal-notes').value;
-  records[modalDate] = { arrival: a || null, departure: dep || null, notes };
+  const dayOff = document.getElementById('modal-dayoff').checked;
+  records[modalDate] = { arrival: a || null, departure: dep || null, notes, dayOff };
   saveLocal();
   upsertRecord(modalDate);
   closeModalDirect();
@@ -877,7 +915,7 @@ function exportCSV() {
     const ds = `${calYear}-${String(calMonth+1).padStart(2,'0')}-${String(day).padStart(2,'0')}`;
     const r = records[ds] || {};
     const dur = getDuration(r);
-    csv += `${ds},${r.arrival||''},${r.departure||''},${dur?minsToHM(dur):''},${getStatusLabel(getStatus(r,ds), ds)},${r.notes||''}\n`;
+    csv += `${ds},${r.arrival||''},${r.departure||''},${(dur && !r.dayOff)?minsToHM(dur):''},${getStatusLabel(getStatus(r,ds), ds, r)},${r.notes||''}\n`;
   }
   const a = Object.assign(document.createElement('a'), { href: URL.createObjectURL(new Blob([csv], {type:'text/csv'})), download: `PAUL_MAM_${calYear}-${String(calMonth+1).padStart(2,'0')}.csv` });
   a.click(); showToast('CSV exporté ✓');
@@ -894,9 +932,9 @@ function exportPrint() {
     const r = records[ds] || {};
     const dur = getDuration(r);
     const d = new Date(ds+'T12:00:00');
-    if (dur) total += dur;
+    if (dur && !r.dayOff) total += dur;
     const st = getStatus(r, ds);
-    rows += `<tr><td>${dnames[d.getDay()]} ${day}</td><td>${r.arrival||'—'}</td><td>${r.departure||'—'}</td><td>${dur?minsToHM(dur):'—'}</td><td style="color:${colors[st]};font-weight:600">${getStatusLabel(st, ds)}</td><td>${r.notes||''}</td></tr>`;
+    rows += `<tr><td>${dnames[d.getDay()]} ${day}</td><td>${r.arrival||'—'}</td><td>${r.departure||'—'}</td><td>${(dur && !r.dayOff)?minsToHM(dur):'—'}</td><td style="color:${colors[st]};font-weight:600">${getStatusLabel(st, ds, r)}</td><td>${r.notes||''}</td></tr>`;
   }
   const win = window.open('','_blank');
   win.document.write(`<html><head><title>PAUL MAM ${months[calMonth]} ${calYear}</title><style>body{font-family:sans-serif;padding:20px}h1{font-size:18px;margin-bottom:16px}table{width:100%;border-collapse:collapse;font-size:13px}th,td{border:1px solid #ddd;padding:6px 8px}th{background:#f5f5f5;font-weight:600}tfoot td{font-weight:bold;background:#f0f0f0}</style></head><body><h1>PAUL · Les Crocs Mignons · ${months[calMonth]} ${calYear}</h1><table><thead><tr><th>Jour</th><th>Arrivée</th><th>Départ</th><th>Durée</th><th>Statut</th><th>Note</th></tr></thead><tbody>${rows}</tbody><tfoot><tr><td colspan="3">Total mensuel</td><td>${minsToHM(total)}</td><td colspan="2"></td></tr></tfoot></table></body></html>`);
@@ -920,6 +958,9 @@ function runRegressionTests() {
   assert('Jour ouvré passé sans horaire = rouge', getStatus({}, '2026-05-22') === 'red');
   assert('Journée complète 9h00 = vert', getStatus({ arrival:'08:40', departure:'17:40' }, '2026-05-22') === 'green');
   assert('Journée complète 9h01 = orange', getStatus({ arrival:'08:39', departure:'17:40' }, '2026-05-22') === 'orange');
+  assert('Jour chômé passé sans horaire = gris', getStatus({ dayOff:true }, '2026-05-22') === 'gray');
+  assert('Jour chômé avec horaires > 9h reste gris', getStatus({ dayOff:true, arrival:'08:00', departure:'18:30' }, '2026-05-22') === 'gray');
+  assert('Label jour chômé prioritaire', getStatusLabel('gray', '2026-05-22', { dayOff:true }) === 'Jour chômé');
 
   const failed = tests.filter(t => !t.ok);
   console.table(tests);
