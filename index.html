@@ -3057,6 +3057,7 @@ function runRegressionTests() {
     const r = cpTrouverPremierJourDecompte('2026-07-06'); // lundi
     return typeof r.date === 'string' && r.implemente === false;
   })());
+  const failed = tests.filter(t => !t.ok);
   console.table(tests);
   const st = document.getElementById('setup-status');
   if (failed.length) {
