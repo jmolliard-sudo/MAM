@@ -51,10 +51,10 @@ if ('serviceWorker' in navigator) {
     font-family: var(--font);
     background: var(--color-background-primary, #fff);
     color: var(--color-text-primary, #1a1a1a);
-    max-width: 390px;
     margin: 0 auto;
     min-height: 100vh;
     padding-bottom: 80px;
+    /* Plus de max-width global — chaque section gère sa propre largeur */
   }
   nav {
     display: flex;
@@ -62,6 +62,7 @@ if ('serviceWorker' in navigator) {
     position: sticky; top: 0;
     background: var(--color-background-primary, #fff);
     z-index: 10;
+    /* La nav s'étire sur toute la largeur — les boutons se répartissent */
   }
   nav button {
     flex: 1; padding: 14px 0; font-size: 13px; font-family: var(--font);
@@ -70,8 +71,94 @@ if ('serviceWorker' in navigator) {
     transition: color .2s, border-color .2s;
   }
   nav button.active { color: var(--accent); border-bottom-color: var(--accent); }
+
+  /* ---- Sections — comportement responsive ---- */
   .section { display: none; padding: 0; }
   .section.active { display: block; }
+
+  /* Page Accueil : compact mobile-first (430 px max) */
+  #tab-home {
+    max-width: 480px;
+    margin-left: auto;
+    margin-right: auto;
+  }
+
+  /* Toutes les autres pages : large sur tablette/desktop */
+  #tab-calendar,
+  #tab-history,
+  #tab-paie,
+  #tab-diversification,
+  #tab-setup {
+    max-width: 700px;      /* mobile : reste compact */
+    margin-left: auto;
+    margin-right: auto;
+    padding-left: 0;
+    padding-right: 0;
+  }
+
+  @media (min-width: 768px) {
+    /* Tablette et desktop : pages larges */
+    #tab-calendar,
+    #tab-history,
+    #tab-paie,
+    #tab-diversification,
+    #tab-setup {
+      max-width: 1200px;
+      padding-left: 24px;
+      padding-right: 24px;
+    }
+
+    /* Nav centrée et contrainte sur grand écran */
+    nav {
+      max-width: 1200px;
+      margin-left: auto;
+      margin-right: auto;
+      /* La nav full-width reste plus élégante — on garde le centrage du contenu */
+    }
+
+    /* Paie : deux colonnes pour les grilles de cartes */
+    .paie-contrat-grid {
+      display: grid !important;
+      grid-template-columns: 1fr 1fr;
+      gap: 0;
+    }
+
+    /* Congés payés : grille méthodes plus large */
+    .cp-method-compare {
+      gap: 20px;
+    }
+
+    /* Tableau détail Paie : police légèrement plus grande */
+    .paie-detail-table td,
+    .paie-detail-table th,
+    .cp-detail-table td,
+    .cp-detail-table th {
+      font-size: 13px;
+    }
+  }
+
+  @media (min-width: 1024px) {
+    /* Desktop : encore plus d'espace */
+    #tab-calendar,
+    #tab-history,
+    #tab-paie,
+    #tab-diversification,
+    #tab-setup {
+      max-width: 1400px;
+      padding-left: 40px;
+      padding-right: 40px;
+    }
+
+    /* Calendrier : grille jours plus large */
+    .cal-grid {
+      gap: 6px;
+    }
+
+    /* Paie — sous-onglets détail + comparaison CP sur tablette */
+    #paie-sub-conges .cp-section {
+      padding: 0 8px;
+    }
+  }
 
   .home-header { padding: 24px 20px 16px; }
   .home-header .subtitle { font-size: 13px; color: var(--color-text-secondary, #888); margin-bottom: 4px; }
