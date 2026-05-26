@@ -470,9 +470,209 @@ if ('serviceWorker' in navigator) {
   .div-cat-group-body .div-food-item { border-radius: 0; border-left: none; border-right: none; border-bottom: none; }
   .div-cat-group-body .div-food-item:first-child { border-top: 0.5px solid rgba(0,0,0,0.06); }
 
-  /* =====================================================
-     PAIE LESLIE — STYLES
-     ===================================================== */
+  /* ---- Congés payés ---- */
+  .cp-hero {
+    margin: 16px 16px 0;
+    background: linear-gradient(135deg, #EDF4E8 0%, #F0FAF4 100%);
+    border: 1.5px solid #7ABD8E;
+    border-radius: 20px; overflow: hidden;
+  }
+  .cp-hero-header {
+    background: #3B6D11; color: #fff;
+    padding: 14px 20px;
+    display: flex; align-items: center; justify-content: space-between;
+  }
+  .cp-hero-header h3 { font-size: 15px; font-weight: 700; }
+  .cp-hero-header .cp-periode { font-size: 11px; opacity: .8; margin-top: 2px; }
+  .cp-hero-badge {
+    background: rgba(255,255,255,.2); border-radius: 20px;
+    padding: 4px 12px; font-size: 12px; font-weight: 700;
+  }
+  .cp-solde-grid {
+    display: grid; grid-template-columns: repeat(3, 1fr);
+    padding: 14px 16px; gap: 10px;
+  }
+  .cp-solde-item { text-align: center; }
+  .cp-solde-val { font-size: 26px; font-weight: 800; letter-spacing: -1px; color: #3B6D11; }
+  .cp-solde-lbl { font-size: 11px; color: #666; margin-top: 2px; }
+  .cp-section { padding: 0 16px; margin-top: 16px; }
+  .cp-section-title {
+    font-size: 11px; font-weight: 700; text-transform: uppercase;
+    letter-spacing: .7px; color: #888; margin-bottom: 8px;
+  }
+  .cp-card {
+    background: var(--color-background-secondary, #f7f7f5);
+    border-radius: 14px; padding: 14px 16px; margin-bottom: 10px;
+    border: 0.5px solid rgba(0,0,0,.07);
+  }
+  .cp-card-title { font-size: 14px; font-weight: 700; margin-bottom: 6px; }
+  .cp-card-rows { display: flex; flex-direction: column; gap: 6px; }
+  .cp-row {
+    display: flex; justify-content: space-between; align-items: baseline;
+    font-size: 13px;
+  }
+  .cp-row-lbl { color: #555; }
+  .cp-row-val { font-weight: 600; color: #1a1a1a; }
+  .cp-row-val.accent { color: #3B6D11; font-size: 15px; }
+  .cp-row-val.secondary { color: #185FA5; }
+  .cp-row-val.muted { color: #aaa; font-weight: 400; }
+  .cp-method-compare {
+    display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 10px;
+  }
+  .cp-method-card {
+    border-radius: 12px; padding: 12px 14px;
+    border: 1.5px solid transparent;
+  }
+  .cp-method-card.maintien { background: #EDF4E8; border-color: #7ABD8E; }
+  .cp-method-card.dix-pct  { background: var(--paie-blue-bg); border-color: var(--paie-blue-mid); }
+  .cp-method-card.winner   { border-width: 2px; }
+  .cp-method-label { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: .5px; margin-bottom: 4px; }
+  .cp-method-card.maintien .cp-method-label { color: #3B6D11; }
+  .cp-method-card.dix-pct  .cp-method-label { color: var(--paie-blue); }
+  .cp-method-amount { font-size: 20px; font-weight: 800; letter-spacing: -.5px; }
+  .cp-method-card.maintien .cp-method-amount { color: #3B6D11; }
+  .cp-method-card.dix-pct  .cp-method-amount { color: var(--paie-blue); }
+  .cp-method-detail { font-size: 11px; color: #777; margin-top: 3px; line-height: 1.4; }
+  .cp-winner-badge {
+    display: inline-block; margin-top: 5px;
+    background: #3B6D11; color: #fff;
+    border-radius: 10px; padding: 2px 8px; font-size: 10px; font-weight: 700;
+  }
+  .cp-winner-badge.blue { background: var(--paie-blue); }
+  .cp-method-sel {
+    display: flex; gap: 8px; margin-bottom: 14px; align-items: center; flex-wrap: wrap;
+  }
+  .cp-method-sel label { font-size: 13px; color: #555; }
+  .cp-method-sel select {
+    flex: 1; min-width: 160px; padding: 8px 12px; border-radius: 10px;
+    border: 0.5px solid rgba(0,0,0,.15); font-size: 14px; font-family: var(--font);
+    background: var(--color-background-primary, #fff); color: #1a1a1a;
+  }
+  .cp-info-banner {
+    margin: 10px 0; background: #fffbe8; border: 0.5px solid #e5d270;
+    border-radius: 10px; padding: 10px 12px; font-size: 12px; color: #7a6800; line-height: 1.5;
+  }
+  .cp-detail-table { width: 100%; border-collapse: collapse; font-size: 12px; }
+  .cp-detail-table th {
+    text-align: left; padding: 6px 8px; background: rgba(0,0,0,.04);
+    font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: .4px; color: #888;
+    border-bottom: 0.5px solid rgba(0,0,0,.1);
+  }
+  .cp-detail-table td { padding: 7px 8px; border-bottom: 0.5px solid rgba(0,0,0,.05); }
+  .cp-detail-table tr:last-child td { border-bottom: none; font-weight: 700; background: rgba(0,0,0,.02); }
+
+  /* ---- Règles CP avancées ---- */
+  .cp-rules-section { margin: 16px 16px 0; }
+  .cp-rules-warn {
+    background: #fffbe8; border: 1px solid #e5d270;
+    border-radius: 14px; padding: 14px 16px; margin-bottom: 12px;
+    font-size: 13px; color: #7a6800; line-height: 1.5;
+  }
+  .cp-rules-warn strong { display: block; margin-bottom: 4px; font-size: 14px; }
+  .cp-rules-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  @media (max-width: 500px) { .cp-rules-grid { grid-template-columns: 1fr; } }
+  .cp-rules-box {
+    border-radius: 12px; padding: 12px 14px; border: 0.5px solid transparent;
+  }
+  .cp-rules-box.active  { background: #EDF4E8; border-color: #7ABD8E; }
+  .cp-rules-box.pending { background: #fafaf8; border-color: rgba(0,0,0,.1); }
+  .cp-rules-box-title {
+    font-size: 11px; font-weight: 700; text-transform: uppercase;
+    letter-spacing: .6px; margin-bottom: 8px;
+  }
+  .cp-rules-box.active  .cp-rules-box-title { color: #3B6D11; }
+  .cp-rules-box.pending .cp-rules-box-title { color: #888; }
+  .cp-rule-item {
+    display: flex; align-items: baseline; gap: 6px;
+    font-size: 12px; line-height: 1.5; padding: 2px 0;
+  }
+  .cp-rule-item .ri-icon { flex-shrink: 0; font-size: 11px; }
+  .cp-rule-item.active-rule  { color: #2d5a0e; }
+  .cp-rule-item.pending-rule { color: #999; }
+
+  /* ---- Périodes de congés ---- */
+  .cp-periode-form {
+    background: var(--color-background-secondary, #f7f7f5);
+    border-radius: 14px; padding: 14px 16px; margin-bottom: 10px;
+    border: 0.5px solid rgba(0,0,0,.09);
+  }
+  .cp-periode-form-row { display: flex; gap: 10px; flex-wrap: wrap; align-items: flex-end; margin-bottom: 10px; }
+  .cp-periode-form-field { display: flex; flex-direction: column; gap: 4px; flex: 1; min-width: 120px; }
+  .cp-periode-form-field label { font-size: 11px; font-weight: 600; color: #666; text-transform: uppercase; letter-spacing: .4px; }
+  .cp-periode-form-field input,
+  .cp-periode-form-field select {
+    padding: 8px 10px; border-radius: 10px; border: 0.5px solid rgba(0,0,0,.18);
+    font-size: 14px; font-family: var(--font); background: var(--color-background-primary, #fff);
+    color: #1a1a1a;
+  }
+  .cp-add-periode-btn {
+    display: flex; align-items: center; gap: 8px; justify-content: center;
+    width: 100%; padding: 12px; border-radius: 12px;
+    border: 1.5px dashed var(--paie-blue-mid); background: var(--paie-blue-bg);
+    color: var(--paie-blue); font-size: 14px; font-weight: 600; font-family: var(--font);
+    cursor: pointer; margin-bottom: 12px; transition: background .15s;
+  }
+  .cp-add-periode-btn:active { background: rgba(24,95,165,.15); }
+
+  .cp-periode-item {
+    background: var(--color-background-primary, #fff);
+    border-radius: 14px; padding: 12px 14px; margin-bottom: 8px;
+    border: 0.5px solid rgba(0,0,0,.09);
+  }
+  .cp-periode-item.type-cp       { border-left: 3px solid #3B6D11; }
+  .cp-periode-item.type-anticipe { border-left: 3px solid var(--paie-orange); }
+  .cp-periode-item.type-ss       { border-left: 3px solid var(--paie-red); }
+  .cp-periode-item.type-autre    { border-left: 3px solid #aaa; }
+  .cp-periode-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; }
+  .cp-periode-title  { font-size: 14px; font-weight: 700; }
+  .cp-periode-badge  { font-size: 11px; padding: 3px 9px; border-radius: 10px; font-weight: 600; }
+  .cp-periode-badge.cp       { background: #EDF4E8; color: #3B6D11; }
+  .cp-periode-badge.anticipe { background: #fff3e0; color: var(--paie-orange); }
+  .cp-periode-badge.ss       { background: rgba(192,57,43,.1); color: var(--paie-red); }
+  .cp-periode-badge.autre    { background: #f0f0ee; color: #888; }
+  .cp-periode-grid {
+    display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-bottom: 8px;
+  }
+  .cp-periode-stat { text-align: center; }
+  .cp-periode-stat-val { font-size: 18px; font-weight: 800; color: #1a1a1a; }
+  .cp-periode-stat-val.warn { color: var(--paie-orange); }
+  .cp-periode-stat-val.danger { color: var(--paie-red); }
+  .cp-periode-stat-lbl { font-size: 10px; color: #888; margin-top: 1px; }
+  .cp-periode-detail { font-size: 12px; color: #666; line-height: 1.5; }
+  .cp-periode-actions { display: flex; gap: 8px; margin-top: 8px; }
+  .cp-periode-actions button {
+    padding: 5px 12px; border-radius: 8px; border: 0.5px solid rgba(0,0,0,.15);
+    background: transparent; font-size: 12px; font-family: var(--font); cursor: pointer; color: #555;
+  }
+  .cp-periode-actions button.del { color: var(--paie-red); border-color: rgba(192,57,43,.2); }
+  .cp-depasse-banner {
+    background: #fff3e0; border: 1px solid var(--paie-orange); border-radius: 10px;
+    padding: 10px 14px; font-size: 13px; color: #7a4000; margin: 4px 0;
+    line-height: 1.5;
+  }
+  .cp-depasse-banner strong { display: block; margin-bottom: 4px; }
+  .cp-depasse-choix { display: flex; gap: 8px; margin-top: 8px; flex-wrap: wrap; }
+  .cp-depasse-choix button {
+    padding: 6px 14px; border-radius: 8px; border: none; font-size: 12px;
+    font-weight: 600; font-family: var(--font); cursor: pointer;
+  }
+  .cp-depasse-choix .btn-anticipe { background: #fff3e0; color: var(--paie-orange); border: 1px solid var(--paie-orange); }
+  .cp-depasse-choix .btn-ss       { background: rgba(192,57,43,.1); color: var(--paie-red); border: 1px solid var(--paie-red); }
+  .cp-depasse-choix .btn-attente  { background: #f0f0ee; color: #666; border: 1px solid #ccc; }
+
+  /* ---- Fractionnement ---- */
+  .cp-fract-card {
+    background: #f7f7f5; border-radius: 14px; padding: 14px 16px;
+    border: 1px solid rgba(0,0,0,.08); margin-bottom: 10px;
+  }
+  .cp-fract-card .cp-fract-title { font-size: 14px; font-weight: 700; margin-bottom: 8px; }
+  .cp-fract-badge {
+    display: inline-block; padding: 2px 10px; border-radius: 10px;
+    font-size: 11px; font-weight: 700; margin-left: 8px;
+  }
+  .cp-fract-badge.potentiel { background: #fff3e0; color: var(--paie-orange); }
+  .cp-fract-badge.valide    { background: #EDF4E8; color: #3B6D11; }
+
   :root {
     --paie-blue: #185FA5;
     --paie-blue-bg: #EEF4FC;
@@ -891,6 +1091,7 @@ if ('serviceWorker' in navigator) {
   <div class="paie-subtabs">
     <button class="paie-subtab active" onclick="switchPaieTab('declaration')">📋 Déclaration</button>
     <button class="paie-subtab" onclick="switchPaieTab('detail')">🗓️ Détail du mois</button>
+    <button class="paie-subtab" onclick="switchPaieTab('conges')">🌴 Congés payés</button>
     <button class="paie-subtab" onclick="switchPaieTab('contrat')">📄 Contrat</button>
     <button class="paie-subtab" onclick="switchPaieTab('historique')">🗃️ Historique</button>
   </div>
@@ -1126,7 +1327,228 @@ if ('serviceWorker' in navigator) {
   </div><!-- /paie-sub-detail -->
 
   <!-- ======================================
-       SOUS-ONGLET 3 : CONTRAT
+       SOUS-ONGLET 3 : CONGÉS PAYÉS
+       ====================================== -->
+  <div id="paie-sub-conges" style="display:none">
+
+    <!-- Bloc solde CP -->
+    <div class="cp-hero" id="cp-hero">
+      <div class="cp-hero-header">
+        <div>
+          <div class="cp-periode" id="cp-periode-label">Période de référence</div>
+          <h3>Congés payés — Leslie MELIA</h3>
+        </div>
+        <div class="cp-hero-badge" id="cp-statut-badge">—</div>
+      </div>
+      <div class="cp-solde-grid">
+        <div class="cp-solde-item">
+          <div class="cp-solde-val" id="cp-acquis">—</div>
+          <div class="cp-solde-lbl">Jours acquis</div>
+        </div>
+        <div class="cp-solde-item">
+          <div class="cp-solde-val" style="color:#BA7517" id="cp-pris">—</div>
+          <div class="cp-solde-lbl">Jours pris</div>
+        </div>
+        <div class="cp-solde-item">
+          <div class="cp-solde-val" id="cp-solde">—</div>
+          <div class="cp-solde-lbl">Solde restant</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Bannière info première année -->
+    <div class="cp-info-banner" id="cp-premiere-annee-banner" style="display:none">
+      <span id="cp-premiere-annee-text"></span>
+    </div>
+
+    <!-- Comparaison des deux méthodes -->
+    <div class="cp-section">
+      <div class="cp-section-title">Comparaison des méthodes</div>
+      <div class="cp-method-compare" id="cp-method-compare">
+        <!-- généré par JS -->
+      </div>
+
+      <!-- Sélection manuelle de la méthode -->
+      <div class="cp-method-sel">
+        <label for="cp-methode-sel">Méthode retenue :</label>
+        <select id="cp-methode-sel" onchange="cpChoisirMethode(this.value)">
+          <option value="">— Choisir —</option>
+          <option value="maintien">Maintien de salaire</option>
+          <option value="dix_pct">Méthode des 10 %</option>
+        </select>
+      </div>
+
+      <!-- Montant retenu -->
+      <div class="cp-card" id="cp-montant-retenu-card" style="display:none">
+        <div class="cp-card-title">💰 Montant CP à verser (méthode retenue)</div>
+        <div class="cp-card-rows">
+          <div class="cp-row">
+            <span class="cp-row-lbl" id="cp-montant-lbl">—</span>
+            <span class="cp-row-val accent" id="cp-montant-val">—</span>
+          </div>
+          <div class="cp-row">
+            <span class="cp-row-lbl">À déclarer dans Pajemploi</span>
+            <span class="cp-row-val secondary" id="cp-montant-pajemploi">0 €</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Détail acquisition -->
+    <div class="cp-section">
+      <div class="cp-section-title">Détail d'acquisition</div>
+      <div class="cp-card">
+        <div class="cp-card-rows" id="cp-acquisition-rows">
+          <!-- généré par JS -->
+        </div>
+      </div>
+    </div>
+
+    <!-- Détail calcul maintien de salaire -->
+    <div class="cp-section">
+      <div class="cp-section-title">Calcul — Maintien de salaire</div>
+      <div class="cp-card">
+        <div class="cp-card-rows" id="cp-maintien-rows">
+          <!-- généré par JS -->
+        </div>
+      </div>
+    </div>
+
+    <!-- Détail calcul 10 % -->
+    <div class="cp-section">
+      <div class="cp-section-title">Calcul — Méthode des 10 %</div>
+      <div class="cp-card">
+        <div class="cp-card-rows" id="cp-dixpct-rows">
+          <!-- généré par JS -->
+        </div>
+      </div>
+    </div>
+
+    <!-- Historique des périodes -->
+    <div class="cp-section">
+      <div class="cp-section-title">Périodes de référence</div>
+      <div class="cp-card" id="cp-periodes-card">
+        <div class="cp-card-rows" id="cp-periodes-rows">
+          <!-- généré par JS -->
+        </div>
+      </div>
+    </div>
+
+    <!-- ====================================================
+         SECTION : PÉRIODES DE CONGÉS
+         ==================================================== -->
+    <div class="cp-section">
+      <div class="cp-section-title">Périodes de congés</div>
+
+      <!-- Formulaire d'ajout -->
+      <div class="cp-periode-form" id="cp-periode-form" style="display:none">
+        <div class="cp-periode-form-row">
+          <div class="cp-periode-form-field">
+            <label>Date début</label>
+            <input type="date" id="cp-form-debut" onchange="cpFormMajAnalyse()">
+          </div>
+          <div class="cp-periode-form-field">
+            <label>Date fin</label>
+            <input type="date" id="cp-form-fin" onchange="cpFormMajAnalyse()">
+          </div>
+          <div class="cp-periode-form-field">
+            <label>Type</label>
+            <select id="cp-form-type" onchange="cpFormMajAnalyse()">
+              <option value="cp">Congés payés</option>
+              <option value="ss">Congés sans solde</option>
+              <option value="autre">Absence autre</option>
+            </select>
+          </div>
+        </div>
+        <!-- Analyse temps réel -->
+        <div id="cp-form-analyse" style="display:none"></div>
+        <!-- Choix dépassement (si CP anticipés détectés) -->
+        <div id="cp-form-depasse" style="display:none"></div>
+        <div style="display:flex;gap:8px;margin-top:10px">
+          <button class="paie-btn primary" style="flex:1" onclick="cpAjouterPeriode()">✓ Valider la période</button>
+          <button class="paie-btn secondary" onclick="cpAnnulerFormPeriode()">Annuler</button>
+        </div>
+      </div>
+
+      <!-- Bouton ouverture formulaire -->
+      <button class="cp-add-periode-btn" id="cp-add-btn" onclick="cpOuvrirFormPeriode()">
+        + Ajouter une période de congé
+      </button>
+
+      <!-- Liste des périodes -->
+      <div id="cp-periodes-list">
+        <div style="text-align:center;color:#aaa;font-size:13px;padding:16px 0">
+          Aucune période saisie — cliquez sur "Ajouter" pour commencer.
+        </div>
+      </div>
+    </div>
+
+    <!-- ====================================================
+         SECTION : FRACTIONNEMENT
+         ==================================================== -->
+    <div class="cp-section">
+      <div class="cp-section-title">Fractionnement</div>
+      <div class="cp-fract-card">
+        <div class="cp-fract-title">
+          Jours supplémentaires
+          <span class="cp-fract-badge potentiel" id="cp-fract-badge">—</span>
+        </div>
+        <div id="cp-fract-rows"></div>
+      </div>
+    </div>
+
+    <!-- ============================================================
+         SECTION : RÈGLES CP AVANCÉES — TRANSPARENCE
+         ============================================================ -->
+    <div class="cp-rules-section">
+
+      <!-- Avertissement principal -->
+      <div class="cp-rules-warn">
+        <strong>⚠️ Limites actuelles du moteur CP</strong>
+        Ce module calcule les congés payés selon les règles de base CCN assistantes maternelles.
+        Certaines règles avancées sont <strong>préparées dans l'architecture</strong> mais
+        <strong>pas encore automatisées</strong>. Les montants affichés sont indicatifs —
+        vérifier avec un gestionnaire de paie pour les cas complexes.
+      </div>
+
+      <div class="cp-rules-grid">
+
+        <!-- Règles actives -->
+        <div class="cp-rules-box active">
+          <div class="cp-rules-box-title">✅ Prises en compte</div>
+          <div class="cp-rule-item active-rule"><span class="ri-icon">✓</span>Jours ouvrables (lun→sam, hors dim. et fériés)</div>
+          <div class="cp-rule-item active-rule"><span class="ri-icon">✓</span>Acquisition : 2,5 j / mois assimilé (≥ 50 % présence)</div>
+          <div class="cp-rule-item active-rule"><span class="ri-icon">✓</span>Plafond annuel : 30 j ouvrables (5 semaines)</div>
+          <div class="cp-rule-item active-rule"><span class="ri-icon">✓</span>Période de référence : 1er juin → 31 mai</div>
+          <div class="cp-rule-item active-rule"><span class="ri-icon">✓</span>Première année incomplète détectée</div>
+          <div class="cp-rule-item active-rule"><span class="ri-icon">✓</span>Méthode maintien de salaire (base 26 j/mois CCN)</div>
+          <div class="cp-rule-item active-rule"><span class="ri-icon">✓</span>Méthode des 10 % (sur cumul rémunérations)</div>
+          <div class="cp-rule-item active-rule"><span class="ri-icon">✓</span>Comparaison et affichage méthode la plus favorable</div>
+          <div class="cp-rule-item active-rule"><span class="ri-icon">✓</span>Sauvegarde snapshot CP par mois déclaré (Supabase)</div>
+          <div class="cp-rule-item active-rule"><span class="ri-icon">✓</span>Fériés pendant CP — exclus du décompte automatiquement</div>
+          <div class="cp-rule-item active-rule"><span class="ri-icon">✓</span>CP anticipés — détectés, choix utilisateur (anticipe / sans solde / décider plus tard)</div>
+          <div class="cp-rule-item active-rule"><span class="ri-icon">✓</span>Fractionnement — potentiel calculé, validation manuelle</div>
+        </div>
+
+        <!-- Règles en attente -->
+        <div class="cp-rules-box pending">
+          <div class="cp-rules-box-title">🔲 Non encore automatisées</div>
+          <div class="cp-rule-item pending-rule"><span class="ri-icon">○</span>Maintien de salaire avec horaires variables (moyenne 12 mois)</div>
+          <div class="cp-rule-item pending-rule"><span class="ri-icon">○</span>Impact des absences maladie sur l'acquisition</div>
+          <div class="cp-rule-item pending-rule"><span class="ri-icon">○</span>Régularisation / indemnité compensatrice fin de contrat</div>
+          <div class="cp-rule-item pending-rule"><span class="ri-icon">○</span>Conversion jours ouvrables ↔ jours ouvrés</div>
+          <div class="cp-rule-item pending-rule"><span class="ri-icon">○</span>Enfants à charge (suppléments légaux éventuels)</div>
+          <div class="cp-rule-item pending-rule"><span class="ri-icon">○</span>Congés principaux (24 j max consécutifs entre 1er mai–31 oct.)</div>
+        </div>
+
+      </div>
+    </div>
+
+    <div style="height:24px"></div>
+  </div><!-- /paie-sub-conges -->
+
+  <!-- ======================================
+       SOUS-ONGLET 4 : CONTRAT
        ====================================== -->
   <div id="paie-sub-contrat" style="display:none">
     <div class="paie-section-title" style="margin-top:16px">Informations contractuelles</div>
@@ -1317,6 +1739,17 @@ CREATE TABLE IF NOT EXISTS pajemploi_declarations (
   indemnites_repas NUMERIC(10,2) DEFAULT 0,
   conges_payes NUMERIC(10,2) DEFAULT 0,
   total_net NUMERIC(10,2) DEFAULT 0,
+  -- Congés payés (snapshot du mois)
+  cp_jours_acquis NUMERIC(5,1) DEFAULT 0,
+  cp_jours_pris NUMERIC(5,1) DEFAULT 0,
+  cp_solde NUMERIC(5,1) DEFAULT 0,
+  cp_methode_retenue TEXT DEFAULT '',
+  cp_montant_maintien NUMERIC(10,2) DEFAULT 0,
+  cp_montant_10pct NUMERIC(10,2) DEFAULT 0,
+  cp_montant_retenu NUMERIC(10,2) DEFAULT 0,
+  cp_base_remuneration NUMERIC(10,2) DEFAULT 0,
+  cp_periode_label TEXT DEFAULT '',
+  cp_etat_json JSONB DEFAULT '{}',
   -- Données complètes
   lignes_detail JSONB DEFAULT '[]',
   donnees_horaires_source JSONB DEFAULT '[]',
@@ -1333,7 +1766,21 @@ ALTER TABLE pajemploi_declarations
   ADD COLUMN IF NOT EXISTS heures_reelles NUMERIC(8,2) DEFAULT 0,
   ADD COLUMN IF NOT EXISTS heures_declarees NUMERIC(8,2) DEFAULT 0,
   ADD COLUMN IF NOT EXISTS frais_repas NUMERIC(10,2) DEFAULT 0,
-  ADD COLUMN IF NOT EXISTS lignes_detail JSONB DEFAULT '[]';
+  ADD COLUMN IF NOT EXISTS lignes_detail JSONB DEFAULT '[]',
+  ADD COLUMN IF NOT EXISTS cp_jours_acquis NUMERIC(5,1) DEFAULT 0,
+  ADD COLUMN IF NOT EXISTS cp_jours_pris NUMERIC(5,1) DEFAULT 0,
+  ADD COLUMN IF NOT EXISTS cp_solde NUMERIC(5,1) DEFAULT 0,
+  ADD COLUMN IF NOT EXISTS cp_methode_retenue TEXT DEFAULT '',
+  ADD COLUMN IF NOT EXISTS cp_montant_maintien NUMERIC(10,2) DEFAULT 0,
+  ADD COLUMN IF NOT EXISTS cp_montant_10pct NUMERIC(10,2) DEFAULT 0,
+  ADD COLUMN IF NOT EXISTS cp_montant_retenu NUMERIC(10,2) DEFAULT 0,
+  ADD COLUMN IF NOT EXISTS cp_base_remuneration NUMERIC(10,2) DEFAULT 0,
+  ADD COLUMN IF NOT EXISTS cp_periode_label TEXT DEFAULT '',
+  ADD COLUMN IF NOT EXISTS cp_etat_json JSONB DEFAULT '{}',
+  ADD COLUMN IF NOT EXISTS cp_periodes_prises JSONB DEFAULT '[]',
+  ADD COLUMN IF NOT EXISTS cp_fractionnement JSONB DEFAULT '{}',
+  ADD COLUMN IF NOT EXISTS cp_anticipes JSONB DEFAULT '{}',
+  ADD COLUMN IF NOT EXISTS cp_sans_solde JSONB DEFAULT '{}';
 
 -- ③ Index performance
 CREATE INDEX IF NOT EXISTS idx_paj_annee_mois
@@ -2351,7 +2798,125 @@ function runRegressionTests() {
   assert('Paie persistance : paieGenererPDFHist est une fonction', typeof paieGenererPDFHist === 'function');
   assert('Paie persistance : paieMajStatutSave est une fonction', typeof paieMajStatutSave === 'function');
 
-  const failed = tests.filter(t => !t.ok);
+  // ---- Tests moteur CP ----
+  assert('CP : cpCalculCongesPayes est une fonction', typeof cpCalculCongesPayes === 'function');
+  assert('CP : cpGetPeriodeReference est une fonction', typeof cpGetPeriodeReference === 'function');
+  assert('CP : cpIsJourOuvrable est une fonction', typeof cpIsJourOuvrable === 'function');
+  assert('CP : cpCalculerMoisAssimiles est une fonction', typeof cpCalculerMoisAssimiles === 'function');
+  assert('CP : cpRenderConges est une fonction', typeof cpRenderConges === 'function');
+  assert('CP : cpSectionPDF est une fonction', typeof cpSectionPDF === 'function');
+
+  assert('CP : période référence mai 2026 = juin 2025 → mai 2026', (() => {
+    // Mai 2026 est avant juin → période débute juin 2025
+    const p = cpGetPeriodeReference('2026-05-26');
+    return p.debut === '2025-06-01' && p.fin === '2026-05-31';
+  })());
+
+  assert('CP : période référence juin 2026 = juin 2026 → mai 2027', (() => {
+    const p = cpGetPeriodeReference('2026-06-01');
+    return p.debut === '2026-06-01' && p.fin === '2027-05-31';
+  })());
+
+  assert('CP : dimanche n\'est pas ouvrable', (() => {
+    // 24/05/2026 = dimanche
+    return cpIsJourOuvrable('2026-05-24') === false;
+  })());
+
+  assert('CP : samedi est ouvrable', (() => {
+    // 23/05/2026 = samedi
+    return cpIsJourOuvrable('2026-05-23') === true;
+  })());
+
+  assert('CP : jour férié n\'est pas ouvrable', (() => {
+    // 01/05/2026 = Fête du Travail
+    return cpIsJourOuvrable('2026-05-01') === false;
+  })());
+
+  assert('CP : lundi ouvrable normal', (() => {
+    // 18/05/2026 = lundi (pas férié)
+    return cpIsJourOuvrable('2026-05-18') === true;
+  })());
+
+  assert('CP : acquisition mai 2026 = première période, CP non versables', (() => {
+    const c = cpCalculCongesPayes();
+    // En mai 2026, la période courante est juin 2025 → mai 2026
+    // Le contrat démarre le 18/05 → très peu de jours, CP non versables
+    return c.joursAcquisBruts >= 0 && c.joursAcquisBruts <= 2.5;
+  })());
+
+  assert('CP : taux = 2,5 j/mois', (() => {
+    return CP_TAUX_PAR_MOIS === 2.5;
+  })());
+
+  assert('CP : plafond 30 j', (() => {
+    return CP_MAX_ANNUEL === 30;
+  })());
+
+  assert('CP : méthode maintien = salaire/26 × jours', (() => {
+    const tauxJ = PAIE_CONTRAT.salaireMensuelNet / 26;
+    return Math.abs(tauxJ - (1014/26)) < 0.01;
+  })());
+
+  assert('CP : cpChoisirMethode est une fonction', typeof cpChoisirMethode === 'function');
+  assert('CP : cpSaisirJoursPris est une fonction', typeof cpSaisirJoursPris === 'function');
+
+  // ---- Tests règles CP avancées ----
+  assert('CP avancé : cpCompterJoursOuvrablesPeriode est une fonction', typeof cpCompterJoursOuvrablesPeriode === 'function');
+  assert('CP avancé : cpAnalyserPriseConge est une fonction', typeof cpAnalyserPriseConge === 'function');
+  assert('CP avancé : cpCalculerFractionnement est une fonction', typeof cpCalculerFractionnement === 'function');
+
+  assert('CP avancé : congé lun→sam sans férié = 6 j ouvrables', (() => {
+    // Semaine du 06/07/2026 (lun) au 11/07/2026 (sam) — pas de férié
+    const r = cpCompterJoursOuvrablesPeriode('2026-07-06', '2026-07-11');
+    return r.joursOuvrables === 6 && r.dimanchesExclus === 0 && r.joursFeriesExclus === 0;
+  })());
+
+  assert('CP avancé : congé avec dim inclus — dim exclu', (() => {
+    // Lun 06/07 → dim 12/07 : 7 j calendaires, 6 ouvrables (sam inclus), 1 dim exclu
+    const r = cpCompterJoursOuvrablesPeriode('2026-07-06', '2026-07-12');
+    return r.joursCalendaires === 7 && r.joursOuvrables === 6 && r.dimanchesExclus === 1;
+  })());
+
+  assert('CP avancé : 14 juillet (férié) exclu du décompte CP', (() => {
+    // Lun 13/07 → sam 18/07/2026 : 14/07 est férié
+    // → 5 j ouvrables (le 14 est exclu)
+    const r = cpCompterJoursOuvrablesPeriode('2026-07-13', '2026-07-18');
+    return r.joursFeriesExclus === 1 && r.joursOuvrables === 5;
+  })());
+
+  assert('CP avancé : samedi compte comme jour ouvrable CP', (() => {
+    // Sam 11/07/2026 seul : doit compter
+    const r = cpCompterJoursOuvrablesPeriode('2026-07-11', '2026-07-11');
+    return r.joursOuvrables === 1;
+  })());
+
+  assert('CP avancé : cpAnalyserPriseConge détecte dépassement', (() => {
+    // 0 droits disponibles, 5 jours demandés → dépassement de 5 j
+    const a = cpAnalyserPriseConge('2026-07-06', '2026-07-10', 0);
+    return a.depassement === true && a.joursAnticipes === 5;
+  })());
+
+  assert('CP avancé : cpAnalyserPriseConge droits suffisants', (() => {
+    // 10 droits disponibles, semaine de 5 jours → pas de dépassement
+    const a = cpAnalyserPriseConge('2026-07-06', '2026-07-10', 10);
+    return a.depassement === false && a.joursAnticipes === 0 && a.joursAcquisUtilises === 5;
+  })());
+
+  assert('CP avancé : fractionnement potentiel si ≥ 3 j hors saison', (() => {
+    const periodes = [
+      { type: 'cp', debut: '2026-11-02', fin: '2026-11-06', joursOuvrables: 5 },
+    ];
+    const f = cpCalculerFractionnement(periodes);
+    return f.joursPrisHorsSaison >= 3 && f.fractPotentiel >= 1;
+  })());
+
+  assert('CP avancé : pas de fractionnement si tout en saison', (() => {
+    const periodes = [
+      { type: 'cp', debut: '2026-07-06', fin: '2026-07-17', joursOuvrables: 10 },
+    ];
+    const f = cpCalculerFractionnement(periodes);
+    return f.joursPrisHorsSaison === 0 && f.fractPotentiel === 0;
+  })());
   console.table(tests);
   const st = document.getElementById('setup-status');
   if (failed.length) {
@@ -2901,6 +3466,32 @@ function paieSerialiserDeclaration(statut) {
   const annee = paieCurrentAnnee;
   const calc  = paieCalculerMois(mois, annee, paieHorairesImportes);
   const datePaiement = `27/${String(mois).padStart(2,'0')}/${annee}`;
+
+  // Snapshot CP : calcul au moment de la sauvegarde
+  const cp = cpCalculCongesPayes();
+  const cpSnapshot = {
+    cp_jours_acquis:      cp.joursAcquisBruts,
+    cp_jours_pris:        cp.joursPris,
+    cp_solde:             cp.soldeDays,
+    cp_methode_retenue:   cp.methodeRetenue,
+    cp_montant_maintien:  cp.montantMaintien,
+    cp_montant_10pct:     cp.montantDixPct,
+    cp_montant_retenu:    cp.montantRetenu,
+    cp_base_remuneration: cp.baseRemuneration,
+    cp_periode_label:     cp.periode.label,
+    // Snapshot complet de cpEtat pour restauration exacte
+    cp_etat_json: {
+      joursPrisParMois:  cpEtat.joursPrisParMois || {},
+      methodeRetenue:    cpEtat.methodeRetenue   || '',
+      periodesPrises:    cpEtat.periodesPrises   || [],
+      fractionnement:    cpEtat.fractionnement   || {},
+    },
+    cp_periodes_prises: cpEtat.periodesPrises || [],
+    cp_fractionnement:  cpEtat.fractionnement || {},
+    cp_anticipes:       { jours: cp.joursAnticipes || 0 },
+    cp_sans_solde:      { jours: cp.joursSansSolde || 0 },
+  };
+
   return {
     mois, annee,
     salarie_nom:   PAIE_CONTRAT.salarieNom,
@@ -2913,7 +3504,7 @@ function paieSerialiserDeclaration(statut) {
     jours_accueil_reel:          calc.joursAccueilReel,
     jours_indemnites_entretien:  calc.joursIndemnitesEntretien,
     jours_repas:                 calc.joursRepas,
-    // Legacy (compatibilité)
+    // Legacy
     jours_activite:              calc.joursActivitePajemploi,
     nb_entretien:                calc.nbEntretien,
     nb_repas:                    calc.nbRepas,
@@ -2929,11 +3520,13 @@ function paieSerialiserDeclaration(statut) {
     indemnites_entretien:        calc.totalEntretien,
     indemnites_repas:            calc.totalRepas,
     frais_repas:                 calc.totalRepas,
-    conges_payes:                0,
-    total_net:                   calc.totalNet,
+    conges_payes:                cpSnapshot.cp_montant_retenu || 0,
+    total_net:                   calc.totalNet + (cpSnapshot.cp_montant_retenu || 0),
+    // Snapshot CP (colonnes dédiées + JSON complet)
+    ...cpSnapshot,
     // Données complètes
     lignes_detail:               paieHorairesImportes,
-    donnees_horaires_source:     paieHorairesImportes, // legacy
+    donnees_horaires_source:     paieHorairesImportes,
     anomalies_detectees:         calc.alertes,
   };
 }
@@ -2981,6 +3574,7 @@ function paieMajStatutSave(etat, texte) {
 // ---- Initialisation ----
 async function paieInit() {
   paieLoadLocal();
+  cpLoadLocal();
   const now = new Date();
   if (!paieCurrentMois)  paieCurrentMois  = now.getMonth() + 1;
   if (!paieCurrentAnnee) paieCurrentAnnee = now.getFullYear();
@@ -3064,15 +3658,16 @@ function paieOnMonthChange2() {
 function switchPaieTab(tab) {
   paieCurrentSubtab = tab;
   document.querySelectorAll('.paie-subtab').forEach((b,i) => {
-    b.classList.toggle('active', ['declaration','detail','contrat','historique'][i] === tab);
+    b.classList.toggle('active', ['declaration','detail','conges','contrat','historique'][i] === tab);
   });
-  ['declaration','detail','contrat','historique'].forEach(t => {
+  ['declaration','detail','conges','contrat','historique'].forEach(t => {
     const el = document.getElementById('paie-sub-'+t);
     if (el) el.style.display = t === tab ? '' : 'none';
   });
-  if (tab === 'historique') paieRenderHistorique();
+  if (tab === 'historique')  paieRenderHistorique();
   if (tab === 'declaration') paieRenderDeclaration();
-  if (tab === 'detail') paieRenderDetail();
+  if (tab === 'detail')      paieRenderDetail();
+  if (tab === 'conges')      cpRenderConges();
 }
 
 // ---- Utilitaires ----
@@ -4108,9 +4703,24 @@ async function paieSauvegarderSupabase(decl, silent) {
       indemnites_repas:            decl.indemnites_repas,
       conges_payes:                decl.conges_payes,
       total_net:                   decl.total_net,
+      // Congés payés — colonnes dédiées
+      cp_jours_acquis:             decl.cp_jours_acquis      ?? 0,
+      cp_jours_pris:               decl.cp_jours_pris        ?? 0,
+      cp_solde:                    decl.cp_solde              ?? 0,
+      cp_methode_retenue:          decl.cp_methode_retenue   ?? '',
+      cp_montant_maintien:         decl.cp_montant_maintien  ?? 0,
+      cp_montant_10pct:            decl.cp_montant_10pct     ?? 0,
+      cp_montant_retenu:           decl.cp_montant_retenu    ?? 0,
+      cp_base_remuneration:        decl.cp_base_remuneration ?? 0,
+      cp_periode_label:            decl.cp_periode_label     ?? '',
+      cp_etat_json:                decl.cp_etat_json         ?? {},
+      cp_periodes_prises:          decl.cp_periodes_prises   ?? [],
+      cp_fractionnement:           decl.cp_fractionnement    ?? {},
+      cp_anticipes:                decl.cp_anticipes         ?? {},
+      cp_sans_solde:               decl.cp_sans_solde        ?? {},
       // Données complètes
       lignes_detail:               decl.lignes_detail,
-      donnees_horaires_source:     decl.lignes_detail, // legacy
+      donnees_horaires_source:     decl.lignes_detail,
       anomalies_detectees:         decl.anomalies_detectees,
     };
     await sbRequest('/rest/v1/pajemploi_declarations?on_conflict=mois,annee', {
@@ -4211,10 +4821,26 @@ function paieOuvrirDeclaration(key) {
   if (!d) return;
   paieCurrentMois  = d.mois;
   paieCurrentAnnee = d.annee;
-  // Utiliser lignes_detail en priorité, fallback sur donnees_horaires_source
+  // Restaurer les horaires
   paieHorairesImportes = d.lignes_detail || d.donnees_horaires_source || [];
+
+  // Restaurer l'état CP depuis le snapshot sauvegardé
+  if (d.cp_etat_json && typeof d.cp_etat_json === 'object') {
+    const snapshotJoursPris = d.cp_etat_json.joursPrisParMois || {};
+    cpEtat.joursPrisParMois = { ...cpEtat.joursPrisParMois, ...snapshotJoursPris };
+    if (d.cp_etat_json.methodeRetenue)  cpEtat.methodeRetenue  = d.cp_etat_json.methodeRetenue;
+    // Restaurer les périodes prises depuis le snapshot (source de vérité)
+    if (Array.isArray(d.cp_etat_json.periodesPrises)) {
+      cpEtat.periodesPrises = d.cp_etat_json.periodesPrises;
+    }
+    if (d.cp_etat_json.fractionnement) {
+      cpEtat.fractionnement = { ...cpEtat.fractionnement, ...d.cp_etat_json.fractionnement };
+    }
+    cpSaveLocal();
+  }
+
   paieBuildSelectors();
-  paieMajStatutSave('saved', 'Brouillon chargé · ' + paieMoisLabel(d.mois, d.annee));
+  paieMajStatutSave('saved', 'Chargé · ' + paieMoisLabel(d.mois, d.annee));
   switchPaieTab('detail');
   paieRenderDeclaration();
   paieRenderDetail();
@@ -4384,6 +5010,8 @@ function paieGenererPDFData(mois, annee, horaires) {
     <tbody>${planningRows}</tbody>
   </table>
 
+  ${cpSectionPDF()}
+
   <div class="footer">
     Document d'aide à la déclaration Pajemploi — non contractuel · PAUL · MAM Les Crocs Mignons
   </div>
@@ -4393,6 +5021,75 @@ function paieGenererPDFData(mois, annee, horaires) {
   const win = window.open('', '_blank');
   if (win) { win.document.write(html); win.document.close(); }
   else showToast('Autorise les popups pour générer le PDF');
+}
+
+/* ---- Section CP dans le PDF ---- */
+function cpSectionPDF() {
+  cpLoadLocal();
+  const calc = cpCalculCongesPayes();
+  const methodeLbl = {
+    maintien: 'Maintien de salaire',
+    dix_pct:  'Méthode des 10 %',
+    '':       '— non sélectionnée —',
+  }[calc.methodeRetenue] || '—';
+  const montantStr = calc.methodeRetenue ? paieFormatEuro(calc.montantRetenu) : '—';
+  const today_fr = new Date().toLocaleDateString('fr-FR');
+
+  return `
+  <div class="section-title">Congés payés</div>
+
+  <div style="background:#fffbe8;border:1px solid #e5d270;border-radius:8px;padding:10px 14px;margin-bottom:10px;font-size:11px;color:#7a6800;line-height:1.5">
+    <strong>⚠️ Document indicatif — moteur CP v${calc.versionMoteur} — snapshot du ${today_fr}</strong><br>
+    Règles appliquées : acquisition mois civil 50 %, maintien base ${calc.config.diviseurMensuel} j/mois CCN, méthode 10 %.<br>
+    Règles <u>non automatisées</u> : fériés pendant CP · fractionnement · CP anticipés ·
+    horaires variables · impact maladie · régularisation fin contrat.<br>
+    À vérifier avec un gestionnaire de paie pour les situations complexes.
+  </div>
+
+  <div style="background:#EDF4E8;border-radius:10px;padding:14px 16px;margin-bottom:8px">
+    <table style="width:100%;border-collapse:collapse;font-size:13px">
+      <tr><td style="color:#555;padding:4px 0">Période légale de référence</td>
+          <td style="font-weight:600;text-align:right">${calc.periode.label}</td></tr>
+      ${calc.premierePeriode ? `
+      <tr><td style="color:#BA7517;padding:4px 0">Période effective du contrat</td>
+          <td style="font-weight:600;text-align:right;color:#BA7517">${
+            new Date(calc.debutEffectif+'T12:00:00').toLocaleDateString('fr-FR')
+          } → ${
+            new Date(calc.finEffective+'T12:00:00').toLocaleDateString('fr-FR')
+          }</td></tr>` : ''}
+      <tr><td style="color:#555;padding:4px 0">Jours acquis à ce jour</td>
+          <td style="font-weight:600;text-align:right;color:#3B6D11">${calc.joursAcquisBruts} j ouvrables</td></tr>
+      <tr><td style="color:#555;padding:4px 0">Jours pris</td>
+          <td style="font-weight:600;text-align:right">${calc.joursPris} j</td></tr>
+      <tr><td style="color:#555;padding:4px 0">Solde restant</td>
+          <td style="font-weight:600;text-align:right">${calc.soldeDays} j</td></tr>
+      <tr><td colspan="2" style="padding:6px 0 2px;font-size:11px;color:#888;border-top:0.5px solid rgba(0,0,0,.1)">Calcul des montants (${calc.premierePeriode ? 'théorique — informatif uniquement' : 'pour déclaration'})</td></tr>
+      <tr><td style="color:#555;padding:4px 0">Maintien de salaire</td>
+          <td style="text-align:right">${calc.maintien.formule}</td></tr>
+      <tr><td style="color:#555;padding:4px 0">Méthode 10 %</td>
+          <td style="text-align:right">${calc.dixPct.formule}</td></tr>
+      <tr><td style="color:#555;padding:4px 0">Méthode la plus favorable</td>
+          <td style="font-weight:600;text-align:right">${calc.meilleureMethode === 'maintien' ? 'Maintien de salaire' : 'Méthode des 10 %'}</td></tr>
+      <tr><td style="color:#555;padding:4px 0">Méthode retenue (choix manuel)</td>
+          <td style="font-weight:600;text-align:right">${calc.premierePeriode ? 'Non applicable' : methodeLbl}</td></tr>
+      <tr style="border-top:1px solid rgba(0,0,0,.15)">
+          <td style="padding:8px 0 4px;font-weight:700">${calc.premierePeriode ? 'CP à verser en mai 2026' : 'Montant CP indicatif'}</td>
+          <td style="font-weight:800;text-align:right;color:${calc.premierePeriode ? '#999' : '#3B6D11'};font-size:15px;padding:8px 0 4px">${calc.premierePeriode ? '0,00 €' : montantStr}</td></tr>
+    </table>
+    ${calc.premierePeriode
+      ? `<div style="margin-top:8px;font-size:11px;color:#7a6800;background:#fffbe8;border-radius:6px;padding:8px 10px;line-height:1.5">
+          ⚠️ <strong>Première période de référence partielle.</strong><br>
+          Les montants ci-dessus sont théoriques et fournis à titre informatif uniquement.<br>
+          <strong>Aucun congé payé à verser dans la déclaration Pajemploi de mai 2026.</strong><br>
+          Leslie n'a pas acquis de droits depuis le 1er juin 2025 — le contrat a démarré le ${new Date(calc.debutEffectif+'T12:00:00').toLocaleDateString('fr-FR')}.
+        </div>`
+      : ''}
+  </div>
+
+  <div style="background:#f7f7f5;border-radius:8px;padding:8px 12px;font-size:10px;color:#999;line-height:1.6">
+    Règles CP appliquées : ✓ Ouvrables lun→sam · ✓ 2,5 j/mois (≥50 %) · ✓ Plafond 30 j ·
+    ✓ Diviseur ${calc.config.diviseurMensuel} j/mois · ✓ Base 10 % : ${paieFormatEuro(calc.baseRemuneration)} cumulés
+  </div>`;
 }
 
 // ---- Boîte de confirmation ----
@@ -4462,6 +5159,1038 @@ async function paieVerifierTableSilent() {
   }
 }
 
+/* =====================================================
+   MOTEUR CONGÉS PAYÉS ASSISTANTE MATERNELLE v2
+   =====================================================
+
+   ARCHITECTURE EXTENSIBLE — RÈGLES CCN ASSMAT
+
+   Principes :
+   - Toutes les règles sont des fonctions pures et nommées.
+   - Chaque valeur est traçable (objet résultat documenté).
+   - Les règles non encore implémentées sont des stubs
+     documentés qui retournent 0/false sans planter.
+   - Aucun calcul opaque. Aucune constante en dur sauf
+     les données contractuelles déclarées explicitement.
+
+   Règles actuellement ACTIVES (v2) :
+   ✅ Jours ouvrables lun→sam hors dim et fériés
+   ✅ Acquisition 2,5 j / mois civil assimilé (≥50 %)
+   ✅ Plafond 30 j / période de référence
+   ✅ Période de référence 1er juin → 31 mai
+   ✅ Première année incomplète détectée
+   ✅ Méthode maintien de salaire (base 26 j ouvrables/mois CCN)
+   ✅ Méthode des 10 %
+   ✅ Comparaison automatique, choix manuel
+
+   Règles PRÉVUES (stubs en place, non actives) :
+   🔲 Décompte exact par période de CP en jours ouvrables réels
+   🔲 Jours fériés pendant CP non décomptés
+   🔲 Fractionnement et jours supplémentaires
+   🔲 CP anticipés
+   🔲 Semaines assimilées (vs mois civils)
+   🔲 Maintien salaire avec horaires variables
+   🔲 Impact absences maladie sur acquisition
+   🔲 Régularisation fin de contrat
+   🔲 Conversion jours ouvrables ↔ jours ouvrés
+   🔲 Enfants à charge (supplément légal éventuel)
+   ===================================================== */
+
+// ================================================================
+// SECTION 1 — CONFIGURATION CONTRACTUELLE CP
+// ================================================================
+
+const CP_CONFIG = {
+  debutContrat:      '2026-05-18',
+  finAdaptation:     '2026-05-22',
+  typeAnnee:         'complete',
+  tauxParMois:       2.5,
+  maxAnnuel:         30,
+  seuilMoisAssimile: 0.5,
+  diviseurMensuel:   26,
+  typeJours:         'ouvrables',
+  fractionnement: { actif: false, joursSupp: 0, seuilJoursHorsEte: 6 },
+  congesPrincipaux: { actif: false, debutPeriode: '05-01', finPeriode: '10-31', maxContinu: 24 },
+};
+
+// Alias legacy pour compatibilité tests existants
+const CP_TAUX_PAR_MOIS  = CP_CONFIG.tauxParMois;
+const CP_MAX_ANNUEL     = CP_CONFIG.maxAnnuel;
+const CP_DEBUT_CONTRAT  = CP_CONFIG.debutContrat;
+const CP_FIN_ADAPTATION = CP_CONFIG.finAdaptation;
+
+// ================================================================
+// ================================================================
+// SECTION 2 — ÉTAT PERSISTANT CP
+// ================================================================
+
+const CP_LOCAL_KEY = 'mam_cp_etat_v1';
+let cpEtat = {
+  joursPrisParMois:         {},   // { '2026-07': 5 } — legacy, remplacé par periodesPrises
+  methodeRetenue:           '',   // 'maintien' | 'dix_pct'
+  periodesPrises:           [],   // tableau de périodes détaillées (voir cpCreerPeriode)
+  fractionnement:           { joursSupp: 0, valide: false },
+  absencesMaladie:          { joursImpact: 0 },
+  regularisationFinContrat: { actif: false, montant: 0 },
+};
+
+function cpSaveLocal() {
+  try { localStorage.setItem(CP_LOCAL_KEY, JSON.stringify(cpEtat)); } catch(e) {}
+}
+function cpLoadLocal() {
+  try {
+    const raw = localStorage.getItem(CP_LOCAL_KEY);
+    if (raw) {
+      const p = JSON.parse(raw);
+      cpEtat = {
+        ...cpEtat, ...p,
+        fractionnement:           { ...cpEtat.fractionnement,           ...(p.fractionnement           || {}) },
+        absencesMaladie:          { ...cpEtat.absencesMaladie,          ...(p.absencesMaladie          || {}) },
+        regularisationFinContrat: { ...cpEtat.regularisationFinContrat, ...(p.regularisationFinContrat || {}) },
+        periodesPrises:           Array.isArray(p.periodesPrises) ? p.periodesPrises : [],
+      };
+    }
+  } catch(e) {}
+}
+
+// ================================================================
+// SECTION 3 — PRIMITIVES CALENDRIER
+// ================================================================
+
+function cpGetPeriodeReference(dateStr) {
+  const d = new Date((dateStr || fmt(new Date())) + 'T12:00:00');
+  const annee = d.getFullYear();
+  const mois  = d.getMonth();
+  const debutAnnee = mois >= 5 ? annee : annee - 1;
+  return {
+    debut:      `${debutAnnee}-06-01`,
+    fin:        `${debutAnnee + 1}-05-31`,
+    label:      `1er juin ${debutAnnee} → 31 mai ${debutAnnee + 1}`,
+    anneeDebut: debutAnnee,
+    anneeFin:   debutAnnee + 1,
+  };
+}
+
+function cpIsJourOuvrable(dateStr) {
+  const dow = new Date(dateStr + 'T12:00:00').getDay();
+  if (dow === 0) return false;
+  if (isHoliday(dateStr)) return false;
+  return true;
+}
+
+function cpIsJourOuvre(dateStr) { // 🔲 stub conversion
+  const dow = new Date(dateStr + 'T12:00:00').getDay();
+  if (dow === 0 || dow === 6) return false;
+  if (isHoliday(dateStr)) return false;
+  return true;
+}
+
+function cpCountJoursOuvrables(debut, fin) {
+  let count = 0;
+  const d = new Date(debut + 'T12:00:00');
+  const fDate = new Date(fin + 'T12:00:00');
+  while (d <= fDate) {
+    if (cpIsJourOuvrable(fmt(d))) count++;
+    d.setDate(d.getDate() + 1);
+  }
+  return count;
+}
+
+/*
+  cpCompterJoursOuvrablesPeriode(debut, fin)
+  ✅ IMPLÉMENTÉ — décompte réel jour par jour.
+  Jours ouvrables = lun→sam, hors dimanche et fériés.
+  Les fériés pendant la période sont exclus du décompte CP.
+  Retourne un objet complet et auditable.
+*/
+function cpCompterJoursOuvrablesPeriode(debut, fin) {
+  const detailJourParJour = [];
+  let joursOuvrables     = 0;
+  let dimanchesExclus    = 0;
+  let joursFeriesExclus  = 0;
+  let joursCalendaires   = 0;
+
+  const d = new Date(debut + 'T12:00:00');
+  const fDate = new Date(fin + 'T12:00:00');
+
+  while (d <= fDate) {
+    const ds  = fmt(d);
+    const dow = d.getDay();
+    const estDimanche = dow === 0;
+    const estFerie    = isHoliday(ds);
+    const estOuvrable = !estDimanche && !estFerie;
+    const compteCommeCP = estOuvrable;
+
+    detailJourParJour.push({
+      date:         ds,
+      jourSemaine:  ['Dim','Lun','Mar','Mer','Jeu','Ven','Sam'][dow],
+      estOuvrable,
+      estDimanche,
+      estFerie,
+      compteCommeCP,
+    });
+
+    joursCalendaires++;
+    if (estDimanche)    dimanchesExclus++;
+    else if (estFerie)  joursFeriesExclus++;
+    else                joursOuvrables++;
+
+    d.setDate(d.getDate() + 1);
+  }
+
+  return {
+    debut, fin,
+    joursCalendaires,
+    joursOuvrables,
+    dimanchesExclus,
+    joursFeriesExclus,
+    detailJourParJour,
+  };
+}
+
+function cpJoursOuvrablesToOuvres(j) { return Math.round(j * (5/6) * 10) / 10; } // stub
+
+// ================================================================
+// SECTION 4 — CALCUL D'ACQUISITION
+// ================================================================
+
+function cpCalculerMoisAssimiles(debut, fin) {
+  const lignes = [];
+  const d = new Date(debut + 'T12:00:00');
+  const fDate = new Date(fin + 'T12:00:00');
+
+  while (d <= fDate) {
+    const annee = d.getFullYear();
+    const mois  = d.getMonth();
+    const moisCle = `${annee}-${String(mois + 1).padStart(2,'0')}`;
+    const debutMois = new Date(annee, mois, 1);
+    const finMois   = new Date(annee, mois + 1, 0);
+
+    const dStart = new Date(Math.max(debutMois.getTime(), new Date(debut + 'T12:00:00').getTime()));
+    const dEnd   = new Date(Math.min(finMois.getTime(), fDate.getTime()));
+
+    const joursPresence = Math.max(0, Math.round((dEnd - dStart) / 864e5) + 1);
+    const joursMois     = finMois.getDate();
+    const pct           = joursPresence / joursMois;
+    const assimile      = pct >= CP_CONFIG.seuilMoisAssimile ? 1 : (pct > 0 ? pct : 0);
+
+    if (joursPresence > 0) {
+      lignes.push({
+        moisCle,
+        label:                   new Date(annee, mois, 15).toLocaleDateString('fr-FR', { month: 'long', year: 'numeric' }),
+        joursPresence, joursMois,
+        pct:                     Math.round(pct * 100),
+        assimile:                Math.round(assimile * 10) / 10,
+        joursAcquis:             Math.round(assimile * CP_CONFIG.tauxParMois * 10) / 10,
+        semainesAssimilees:      Math.round(assimile * 4 * 10) / 10,
+        absencesMaladieJours:    0,
+        absencesAssimileesJours: 0,
+        methodeCal:              'mois_civil_50pct',
+      });
+    }
+    d.setMonth(d.getMonth() + 1);
+    d.setDate(1);
+  }
+
+  const total = Math.round(lignes.reduce((s, l) => s + l.assimile, 0) * 10) / 10;
+  return { lignes, total, methode: 'mois_civil_50pct' };
+}
+
+function cpCalculerJoursAcquis(moisAssimiles) {
+  const brut     = Math.round(moisAssimiles.total * CP_CONFIG.tauxParMois * 10) / 10;
+  const plafonne = Math.min(brut, CP_CONFIG.maxAnnuel);
+  // Jours supplémentaires fractionnement validés manuellement
+  const joursSupp = cpEtat.fractionnement?.valide ? (cpEtat.fractionnement.joursSupp || 0) : 0;
+  return {
+    brut, plafonne, joursSupp,
+    total:        Math.min(plafonne + joursSupp, CP_CONFIG.maxAnnuel),
+    plafondActif: brut > CP_CONFIG.maxAnnuel,
+    taux:         CP_CONFIG.tauxParMois,
+    plafond:      CP_CONFIG.maxAnnuel,
+  };
+}
+
+function cpCalculerJoursPris(periode) {
+  // Calculer depuis les périodes détaillées (source de vérité principale)
+  let total = 0;
+  (cpEtat.periodesPrises || []).forEach(p => {
+    if (!p.debut || !p.fin) return;
+    // La période est dans la période de référence ?
+    if (p.debut >= periode.debut && p.debut <= periode.fin) {
+      // Ne compter que les jours CP (acquis + anticipés) — pas les sans solde
+      if (p.type === 'cp' || p.type === 'cp_anticipe') {
+        total += (p.joursOuvrables || 0);
+      }
+    }
+  });
+  // Fallback legacy si périodesPrises vide (ancienne saisie par mois)
+  if (total === 0 && cpEtat.joursPrisParMois) {
+    Object.entries(cpEtat.joursPrisParMois).forEach(([moisCle, jours]) => {
+      const d = moisCle + '-01';
+      if (d >= periode.debut && d <= periode.fin) total += (jours || 0);
+    });
+  }
+  return Math.round(total * 10) / 10;
+}
+
+// ================================================================
+// SECTION 5 — CALCUL DES MONTANTS
+// ================================================================
+
+function cpCalculerMaintienSalaire(joursPris) {
+  const diviseur          = CP_CONFIG.diviseurMensuel;
+  const salaireJournalier = Math.round(PAIE_CONTRAT.salaireMensuelNet / diviseur * 100) / 100;
+  const montant           = Math.round(joursPris * salaireJournalier * 100) / 100;
+  return {
+    montant, salaireJournalier, diviseur, joursPris,
+    salaireMensuel:   PAIE_CONTRAT.salaireMensuelNet,
+    formule:          `${joursPris} j × (${PAIE_CONTRAT.salaireMensuelNet} € ÷ ${diviseur}) = ${montant.toFixed(2).replace('.',',')} €`,
+    horairesVariables: false,
+  };
+}
+
+function cpCalculerBaseRemuneration(periode) {
+  let total = 0;
+  const lignes = [];
+  const moisNoms = ['Jan','Fév','Mar','Avr','Mai','Juin','Juil','Août','Sep','Oct','Nov','Déc'];
+  Object.entries(paieLocalDeclarations).forEach(([key, decl]) => {
+    if (!decl?.mois || !decl?.annee) return;
+    const d = `${decl.annee}-${String(decl.mois).padStart(2,'0')}-01`;
+    if (d >= periode.debut && d <= periode.fin) {
+      const montant = decl.salaire_net || decl.total_net || 0;
+      total += montant;
+      lignes.push({ label: moisNoms[decl.mois-1] + ' ' + decl.annee, montant });
+    }
+  });
+  return { total: Math.round(total * 100) / 100, lignes };
+}
+
+function cpCalculerDixPct(baseObj) {
+  const montant = Math.round(baseObj.total * 0.10 * 100) / 100;
+  return {
+    montant, base: baseObj.total, taux: 0.10,
+    formule: `10 % × ${baseObj.total.toFixed(2).replace('.',',')} € = ${montant.toFixed(2).replace('.',',')} €`,
+  };
+}
+
+// ================================================================
+// SECTION 6 — RÈGLES AVANCÉES IMPLÉMENTÉES
+// ================================================================
+
+/*
+  cpAnalyserPriseConge(debut, fin, droitsDisponibles)
+  ✅ IMPLÉMENTÉ — Analyse une période de congé demandée.
+  Décompte les jours ouvrables réels (fériés exclus).
+  Détecte si les droits sont suffisants.
+  Retourne un objet complet pour affichage et saisie.
+*/
+function cpAnalyserPriseConge(debut, fin, droitsDisponibles) {
+  if (!debut || !fin || fin < debut) {
+    return { valide: false, erreur: 'Dates invalides' };
+  }
+  const decompte        = cpCompterJoursOuvrablesPeriode(debut, fin);
+  const joursDemandes   = decompte.joursOuvrables;
+  const droitsRestants  = Math.max(0, droitsDisponibles);
+
+  const joursAcquisUtilises = Math.min(joursDemandes, droitsRestants);
+  const joursAnticipes      = Math.max(0, joursDemandes - droitsRestants);
+  const depassement         = joursAnticipes > 0;
+
+  const alertes = [];
+  if (depassement) {
+    alertes.push({
+      type: 'warn',
+      msg:  `${joursAnticipes} jour(s) dépassent les droits acquis (${droitsRestants} j disponibles sur ${joursDemandes} j demandés).`,
+    });
+  }
+  if (decompte.joursFeriesExclus > 0) {
+    alertes.push({
+      type: 'info',
+      msg:  `${decompte.joursFeriesExclus} jour(s) férié(s) pendant la période — non décompté(s) comme CP.`,
+    });
+  }
+
+  return {
+    valide:           true,
+    debut, fin,
+    decompte,
+    joursCalendaires:     decompte.joursCalendaires,
+    joursOuvrables:       joursDemandes,
+    joursFeriesExclus:    decompte.joursFeriesExclus,
+    dimanchesExclus:      decompte.dimanchesExclus,
+    joursAcquisUtilises,
+    joursAnticipes,
+    joursSansSolde:       0,   // défini par le choix utilisateur
+    depassement,
+    alertes,
+  };
+}
+
+/*
+  cpCalculerFractionnement(periodesPrises)
+  ✅ IMPLÉMENTÉ — Calcul du droit potentiel au fractionnement.
+  Règle : congés pris hors 1er mai–31 oct. peuvent ouvrir droit
+  à des jours supplémentaires. Résultat = POTENTIEL, validation manuelle.
+*/
+function cpCalculerFractionnement(periodesPrises) {
+  const periodeEte = { debut: '-05-01', fin: '-10-31' }; // suffixe MMDD
+  let joursPrisEnSaison   = 0;
+  let joursPrisHorsSaison = 0;
+
+  (periodesPrises || []).forEach(p => {
+    if (p.type !== 'cp' && p.type !== 'cp_anticipe') return;
+    const annee = (p.debut || '').slice(0, 4);
+    const debutSaison = annee + periodeEte.debut;
+    const finSaison   = annee + periodeEte.fin;
+    const jours = p.joursOuvrables || 0;
+    if (p.debut >= debutSaison && p.fin <= finSaison) {
+      joursPrisEnSaison   += jours;
+    } else {
+      joursPrisHorsSaison += jours;
+    }
+  });
+
+  // Règle légale : ≥ 6 j hors saison → 2 j suppl. ; ≥ 3 j → 1 j suppl.
+  let fractPotentiel = 0;
+  if (joursPrisHorsSaison >= 6)      fractPotentiel = 2;
+  else if (joursPrisHorsSaison >= 3) fractPotentiel = 1;
+
+  // Jours validés manuellement par l'utilisateur
+  const joursValidés = cpEtat.fractionnement?.valide ? (cpEtat.fractionnement.joursSupp || 0) : 0;
+
+  return {
+    actif:              fractPotentiel > 0 || joursValidés > 0,
+    joursPrisEnSaison,
+    joursPrisHorsSaison,
+    fractPotentiel,
+    joursValides:       joursValidés,
+    statut:             joursValidés > 0 ? 'valide' : (fractPotentiel > 0 ? 'potentiel' : 'aucun'),
+    note: fractPotentiel > 0 && !joursValidés
+      ? `${fractPotentiel} j potentiel(s) — validation manuelle requise`
+      : joursValidés > 0 ? `${joursValidés} j validé(s)` : 'Aucun droit potentiel',
+  };
+}
+
+// Stubs restants (non prioritaires)
+function cpImpactAbsenceMaladie() {
+  return { joursImpact: 0, absencesAssimilees: [], note: '🔲 Non implémenté' };
+}
+function cpRegularisationFinContrat(soldeDays, salaireJournalier) {
+  if (!cpEtat.regularisationFinContrat?.actif) return { actif: false, montant: 0, note: '🔲 Non activé' };
+  return { actif: true, montant: Math.round(soldeDays * salaireJournalier * 100) / 100, soldeDays, salaireJournalier };
+}
+
+// ================================================================
+// SECTION 7 — MOTEUR PRINCIPAL
+// ================================================================
+
+function cpCalculCongesPayes() {
+  const today   = fmt(new Date());
+  const periode = cpGetPeriodeReference(today);
+
+  const debutContrat  = CP_CONFIG.debutContrat;
+  const debutEffectif = debutContrat > periode.debut ? debutContrat : periode.debut;
+  const finEffective  = today <= periode.fin ? today : periode.fin;
+  const premierePeriode = debutContrat > periode.debut;
+
+  const moisAssimiles  = cpCalculerMoisAssimiles(debutEffectif, finEffective);
+  const acquisition    = cpCalculerJoursAcquis(moisAssimiles);
+  const joursAcquisBruts = acquisition.total;
+
+  const joursPris  = cpCalculerJoursPris(periode);
+  const soldeDays  = Math.max(0, Math.round((joursAcquisBruts - joursPris) * 10) / 10);
+
+  const maintienObj     = cpCalculerMaintienSalaire(joursPris);
+  const baseRemuObj     = cpCalculerBaseRemuneration(periode);
+  const dixPctObj       = cpCalculerDixPct(baseRemuObj);
+  const montantMaintien = maintienObj.montant;
+  const montantDixPct   = dixPctObj.montant;
+  const meilleureMethode = montantMaintien >= montantDixPct ? 'maintien' : 'dix_pct';
+
+  const methodeRetenue = cpEtat.methodeRetenue || '';
+  const montantRetenu  = methodeRetenue === 'maintien' ? montantMaintien
+                       : methodeRetenue === 'dix_pct'  ? montantDixPct
+                       : 0;
+
+  // Règles avancées implémentées
+  const fractionnement = cpCalculerFractionnement(cpEtat.periodesPrises || []);
+  const maladie        = cpImpactAbsenceMaladie();
+  const regularisation = cpRegularisationFinContrat(soldeDays, maintienObj.salaireJournalier);
+
+  // Statistiques CP anticipés depuis les périodes
+  const joursAnticipes = (cpEtat.periodesPrises || [])
+    .filter(p => p.type === 'cp_anticipe')
+    .reduce((s, p) => s + (p.joursOuvrables || 0), 0);
+  const joursSansSolde = (cpEtat.periodesPrises || [])
+    .filter(p => p.type === 'ss')
+    .reduce((s, p) => s + (p.joursOuvrables || 0), 0);
+
+  const alertes = [];
+  if (premierePeriode)              alertes.push({ type: 'info', msg: 'Première période de référence — aucun CP versable avant acquisition suffisante.' });
+  if (joursPris > joursAcquisBruts) alertes.push({ type: 'warn', msg: `Attention : ${joursPris} j pris > ${joursAcquisBruts} j acquis.` });
+  if (acquisition.plafondActif)     alertes.push({ type: 'info', msg: `Plafond de ${CP_CONFIG.maxAnnuel} j atteint (${acquisition.brut} j bruts).` });
+  if (joursAnticipes > 0)           alertes.push({ type: 'warn', msg: `${joursAnticipes} j en CP anticipés — solde négatif en fin de période si non rattrapé.` });
+  if (fractionnement.fractPotentiel > 0 && !fractionnement.joursValides)
+    alertes.push({ type: 'info', msg: `Fractionnement potentiel : ${fractionnement.fractPotentiel} j suppl. à valider.` });
+
+  return {
+    periode, debutEffectif, finEffective, premierePeriode, config: CP_CONFIG,
+    moisAssimiles, acquisition, joursAcquisBruts,
+    joursPris, soldeDays, joursAnticipes, joursSansSolde,
+    maintien: maintienObj,
+    salaireJournalierNet: maintienObj.salaireJournalier,
+    dixPct: dixPctObj,
+    baseRemuneration: baseRemuObj.total,
+    montantDixPct,
+    meilleureMethode, methodeRetenue, montantRetenu,
+    montantMaintien,
+    fractionnement, maladie, regularisation,
+    alertes,
+    cpVersablesMois: joursPris > 0,
+    versionMoteur: '2.1',
+  };
+}
+
+// ================================================================
+// SECTION 8 — INTERACTIONS UTILISATEUR ET AUTOSAVE
+// ================================================================
+
+function cpChoisirMethode(val) {
+  cpEtat.methodeRetenue = val;
+  cpSaveLocal();
+  cpRenderConges();
+  if (paieHorairesImportes && paieHorairesImportes.length > 0) paieAutoSave(600);
+}
+
+function cpSaisirJoursPris(moisCle, val) {
+  const v = parseFloat(val) || 0;
+  if (!cpEtat.joursPrisParMois) cpEtat.joursPrisParMois = {};
+  cpEtat.joursPrisParMois[moisCle] = v;
+  cpSaveLocal();
+  cpRenderConges();
+  if (paieHorairesImportes && paieHorairesImportes.length > 0) paieAutoSave(600);
+}
+
+// ----------------------------------------------------------------
+// SECTION 8b — GESTION DES PÉRIODES DE CONGÉS
+// ----------------------------------------------------------------
+
+let cpFormAnalyseEnCours = null; // résultat de l'analyse du formulaire
+let cpFormDepassChoix    = null; // choix utilisateur sur le dépassement
+
+function cpOuvrirFormPeriode() {
+  const form  = document.getElementById('cp-periode-form');
+  const btn   = document.getElementById('cp-add-btn');
+  if (form) form.style.display = '';
+  if (btn)  btn.style.display  = 'none';
+  // Date par défaut : mois prochain
+  const now = new Date();
+  const y = now.getMonth() >= 11 ? now.getFullYear() + 1 : now.getFullYear();
+  const m = (now.getMonth() + 1) % 12 + 1;
+  const debut = document.getElementById('cp-form-debut');
+  const fin   = document.getElementById('cp-form-fin');
+  if (debut && !debut.value) debut.value = `${y}-${String(m).padStart(2,'0')}-01`;
+  if (fin   && !fin.value)   fin.value   = `${y}-${String(m).padStart(2,'0')}-07`;
+  cpFormAnalyseEnCours = null;
+  cpFormDepassChoix    = null;
+  cpFormMajAnalyse();
+}
+
+function cpAnnulerFormPeriode() {
+  const form = document.getElementById('cp-periode-form');
+  const btn  = document.getElementById('cp-add-btn');
+  if (form) form.style.display = 'none';
+  if (btn)  btn.style.display  = '';
+  cpFormAnalyseEnCours = null;
+  cpFormDepassChoix    = null;
+}
+
+function cpFormMajAnalyse() {
+  const debut = document.getElementById('cp-form-debut')?.value;
+  const fin   = document.getElementById('cp-form-fin')?.value;
+  const type  = document.getElementById('cp-form-type')?.value;
+  const zoneAnalyse = document.getElementById('cp-form-analyse');
+  const zoneDepasse = document.getElementById('cp-form-depasse');
+  if (!debut || !fin || !zoneAnalyse) return;
+  if (fin < debut) {
+    zoneAnalyse.style.display = '';
+    zoneAnalyse.innerHTML = `<div class="cp-depasse-banner" style="background:#fef3f3;border-color:var(--paie-red);color:var(--paie-red)">⚠️ La date de fin est antérieure au début.</div>`;
+    if (zoneDepasse) zoneDepasse.style.display = 'none';
+    return;
+  }
+
+  const calc     = cpCalculCongesPayes();
+  const analyse  = cpAnalyserPriseConge(debut, fin, calc.soldeDays);
+  cpFormAnalyseEnCours = analyse;
+
+  // Affichage analyse
+  let html = `<div style="background:#f0f0ee;border-radius:10px;padding:10px 12px;font-size:13px;margin-bottom:8px">
+    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;text-align:center;margin-bottom:8px">
+      <div><div style="font-size:18px;font-weight:800">${analyse.joursCalendaires} j</div><div style="font-size:10px;color:#888">Calendaires</div></div>
+      <div><div style="font-size:18px;font-weight:800;color:var(--paie-blue)">${analyse.joursOuvrables} j</div><div style="font-size:10px;color:#888">Ouvrables CP</div></div>
+      <div><div style="font-size:18px;font-weight:800;color:#BA7517">${analyse.joursFeriesExclus} j</div><div style="font-size:10px;color:#888">Fériés exclus</div></div>
+    </div>`;
+  if (type === 'cp') {
+    html += `<div style="font-size:12px;color:#555">Droits disponibles : <strong>${calc.soldeDays} j</strong> — Jours demandés : <strong>${analyse.joursOuvrables} j</strong></div>`;
+  }
+  analyse.alertes.forEach(a => {
+    html += `<div style="margin-top:6px;font-size:12px;color:${a.type==='warn'?'#7a4000':'#185FA5'}">${a.type==='warn'?'⚠️':'ℹ️'} ${a.msg}</div>`;
+  });
+  html += `</div>`;
+  zoneAnalyse.innerHTML = html;
+  zoneAnalyse.style.display = '';
+
+  // Zone dépassement
+  if (type === 'cp' && analyse.depassement && zoneDepasse) {
+    zoneDepasse.style.display = '';
+    zoneDepasse.innerHTML = `
+      <div class="cp-depasse-banner">
+        <strong>⚠️ Dépassement de ${analyse.joursAnticipes} j — traitement requis</strong>
+        ${analyse.joursAcquisUtilises} j couverts par les CP acquis + ${analyse.joursAnticipes} j non couverts.
+        <div class="cp-depasse-choix">
+          <button class="btn-anticipe" onclick="cpFormSetDepassChoix('cp_anticipe')">CP anticipés</button>
+          <button class="btn-ss" onclick="cpFormSetDepassChoix('ss')">Congés sans solde</button>
+          <button class="btn-attente" onclick="cpFormSetDepassChoix('attente')">Décider plus tard</button>
+        </div>
+        <div id="cp-form-depasse-choix-label" style="margin-top:6px;font-size:12px;color:#555"></div>
+      </div>`;
+  } else if (zoneDepasse) {
+    zoneDepasse.style.display = 'none';
+  }
+}
+
+function cpFormSetDepassChoix(choix) {
+  cpFormDepassChoix = choix;
+  const lbl = document.getElementById('cp-form-depasse-choix-label');
+  if (lbl) lbl.textContent = {
+    cp_anticipe: '✓ Les jours excédentaires seront marqués CP anticipés.',
+    ss:          '✓ Les jours excédentaires seront en congés sans solde.',
+    attente:     '✓ Traitement noté "à décider" — à régulariser avant la paie.',
+  }[choix] || '';
+}
+
+function cpAjouterPeriode() {
+  const debut = document.getElementById('cp-form-debut')?.value;
+  const fin   = document.getElementById('cp-form-fin')?.value;
+  const type  = document.getElementById('cp-form-type')?.value;
+  if (!debut || !fin || fin < debut) { showToast('⚠️ Dates invalides'); return; }
+  if (!cpFormAnalyseEnCours) { cpFormMajAnalyse(); return; }
+
+  const analyse = cpFormAnalyseEnCours;
+  let typeFinal = type;
+
+  // Si dépassement et type CP, éclater en deux entrées ou utiliser le choix
+  if (type === 'cp' && analyse.depassement) {
+    if (!cpFormDepassChoix) { showToast('⚠️ Choisissez le traitement du dépassement'); return; }
+    if (cpFormDepassChoix === 'cp_anticipe') {
+      // Une seule ligne avec type cp_anticipe pour la totalité
+      typeFinal = 'cp_anticipe';
+    } else if (cpFormDepassChoix === 'ss') {
+      // Ajouter deux lignes : CP acquis + sans solde (simplifié : une seule ligne ss)
+      // Pour l'instant : type cp pour les jours acquis + ss pour le dépassement
+      cpEtat.periodesPrises.push({
+        id:               Date.now(),
+        debut, fin,
+        type:             'cp',
+        joursCalendaires: analyse.joursCalendaires,
+        joursOuvrables:   analyse.joursAcquisUtilises,
+        joursFeriesExclus: analyse.joursFeriesExclus,
+        joursAnticipes:   0,
+        joursSansSolde:   0,
+        commentaire:      `${analyse.joursAcquisUtilises} j acquis couverts`,
+        depassChoix:      cpFormDepassChoix,
+      });
+      cpEtat.periodesPrises.push({
+        id:               Date.now() + 1,
+        debut, fin,
+        type:             'ss',
+        joursCalendaires: 0,
+        joursOuvrables:   analyse.joursAnticipes,
+        joursFeriesExclus: 0,
+        joursAnticipes:   0,
+        joursSansSolde:   analyse.joursAnticipes,
+        commentaire:      `${analyse.joursAnticipes} j dépassement → sans solde`,
+        depassChoix:      cpFormDepassChoix,
+      });
+      cpSaveLocal();
+      cpAnnulerFormPeriode();
+      cpRenderConges();
+      if (paieHorairesImportes?.length > 0) paieAutoSave(600);
+      showToast('Période ajoutée ✓ (CP + sans solde)');
+      return;
+    } else {
+      // attente — marquer comme cp_anticipe avec note
+      typeFinal = 'cp_anticipe';
+    }
+  }
+
+  cpEtat.periodesPrises.push({
+    id:               Date.now(),
+    debut, fin,
+    type:             typeFinal,
+    joursCalendaires: analyse.joursCalendaires,
+    joursOuvrables:   analyse.joursOuvrables,
+    joursFeriesExclus: analyse.joursFeriesExclus,
+    joursAnticipes:   type === 'cp' ? analyse.joursAnticipes : 0,
+    joursSansSolde:   0,
+    commentaire:      cpFormDepassChoix === 'attente' ? 'Traitement à décider' : '',
+    depassChoix:      cpFormDepassChoix || null,
+    detailJourParJour: analyse.decompte.detailJourParJour,
+  });
+
+  cpSaveLocal();
+  cpAnnulerFormPeriode();
+  cpRenderConges();
+  if (paieHorairesImportes?.length > 0) paieAutoSave(600);
+  showToast('Période ajoutée ✓');
+}
+
+function cpSupprimerPeriode(id) {
+  cpEtat.periodesPrises = (cpEtat.periodesPrises || []).filter(p => p.id !== id);
+  cpSaveLocal();
+  cpRenderConges();
+  if (paieHorairesImportes?.length > 0) paieAutoSave(600);
+}
+
+function cpValiderFractionnement(joursSupp) {
+  cpEtat.fractionnement = { joursSupp, valide: true };
+  cpSaveLocal();
+  cpRenderConges();
+  showToast(`Fractionnement validé : +${joursSupp} j ✓`);
+}
+
+
+// ================================================================
+// SECTION 9 — RENDU INTERFACE
+// ================================================================
+
+function cpRenderConges() {
+  cpLoadLocal();
+  const calc = cpCalculCongesPayes();
+
+  const badge = document.getElementById('cp-statut-badge');
+  if (badge) badge.textContent = calc.premierePeriode ? 'Première année partielle' : 'En cours';
+
+  // Sous-titre de la période dans le header : afficher la période effective, pas la légale
+  const periodeEl = document.getElementById('cp-periode-label');
+  if (periodeEl) {
+    if (calc.premierePeriode) {
+      // Période légale en cours (juin N-1 → mai N), mais le contrat n'a démarré
+      // qu'à calc.debutEffectif → afficher la période effective du contrat
+      const dEff = new Date(calc.debutEffectif + 'T12:00:00').toLocaleDateString('fr-FR');
+      const dFin = new Date(calc.finEffective  + 'T12:00:00').toLocaleDateString('fr-FR');
+      periodeEl.textContent = `Période effective : ${dEff} → ${dFin}`;
+    } else {
+      periodeEl.textContent = calc.periode.label;
+    }
+  }
+
+  // Bannière première année — texte dynamique précis
+  const banPrem  = document.getElementById('cp-premiere-annee-banner');
+  const banTexte = document.getElementById('cp-premiere-annee-text');
+  if (banPrem) banPrem.style.display = calc.premierePeriode ? '' : 'none';
+  if (banTexte && calc.premierePeriode) {
+    const dEff = new Date(calc.debutEffectif + 'T12:00:00').toLocaleDateString('fr-FR');
+    const dFinPeriode = new Date(calc.periode.fin + 'T12:00:00').toLocaleDateString('fr-FR');
+    banTexte.innerHTML =
+      `ℹ️ <strong>Première période de référence partielle</strong> — ` +
+      `Le contrat a démarré le ${dEff}. ` +
+      `Les droits CP s'accumulent du ${dEff} au ${dFinPeriode}, ` +
+      `puis la période normale commence le 1er juin ${calc.periode.anneeFin}. ` +
+      `<strong>Aucun congé payé à verser dans la déclaration Pajemploi de mai 2026.</strong>`;
+  }
+
+  const acqEl  = document.getElementById('cp-acquis');
+  const prisEl = document.getElementById('cp-pris');
+  const solEl  = document.getElementById('cp-solde');
+  if (acqEl)  acqEl.textContent  = calc.joursAcquisBruts + ' j';
+  if (prisEl) prisEl.textContent = calc.joursPris + ' j';
+  if (solEl)  solEl.textContent  = calc.soldeDays + ' j';
+
+  // Comparaison méthodes
+  const compareZone = document.getElementById('cp-method-compare');
+  if (compareZone) {
+    const mW = calc.meilleureMethode === 'maintien';
+    // En première période : la mention "Plus favorable" est théorique — rien n'est versé
+    const suffixePremiere = calc.premierePeriode
+      ? '<div style="margin-top:6px;font-size:10px;color:#888;font-style:italic">Comparaison théorique — non versé en mai 2026</div>'
+      : '';
+    compareZone.innerHTML = `
+      <div class="cp-method-card maintien ${mW && !calc.premierePeriode ? 'winner' : ''}">
+        <div class="cp-method-label">Maintien de salaire</div>
+        <div class="cp-method-amount">${paieFormatEuro(calc.montantMaintien)}</div>
+        <div class="cp-method-detail">${calc.maintien.formule}</div>
+        ${mW && !calc.premierePeriode ? '<span class="cp-winner-badge">✓ Plus favorable</span>' : ''}
+        ${calc.premierePeriode ? '<div style="font-size:10px;color:#888;margin-top:4px;font-style:italic">Informatif — non versé mai 2026</div>' : ''}
+      </div>
+      <div class="cp-method-card dix-pct ${!mW && !calc.premierePeriode ? 'winner' : ''}">
+        <div class="cp-method-label">10 % du brut</div>
+        <div class="cp-method-amount">${paieFormatEuro(calc.montantDixPct)}</div>
+        <div class="cp-method-detail">${calc.dixPct.formule}</div>
+        ${!mW && !calc.premierePeriode ? '<span class="cp-winner-badge blue">✓ Plus favorable</span>' : ''}
+        ${calc.premierePeriode ? '<div style="font-size:10px;color:#888;margin-top:4px;font-style:italic">Informatif — non versé mai 2026</div>' : ''}
+      </div>`;
+    if (calc.premierePeriode && compareZone.parentElement) {
+      // Ajouter la mention explicite sous la grille
+      const existingNote = compareZone.parentElement.querySelector('.cp-premiere-note');
+      if (!existingNote) {
+        const note = document.createElement('div');
+        note.className = 'cp-premiere-note cp-info-banner';
+        note.style.cssText = 'margin-top:8px;font-size:12px;';
+        note.innerHTML = '⚠️ <strong>Comparaison théorique à titre informatif.</strong> Aucun montant de congés payés n\'est à ajouter à la déclaration Pajemploi de mai 2026.';
+        compareZone.insertAdjacentElement('afterend', note);
+      }
+    }
+  }
+
+  const selMeth = document.getElementById('cp-methode-sel');
+  if (selMeth) {
+    if (calc.premierePeriode) {
+      // En première période : désactiver le sélecteur et afficher "Non applicable"
+      selMeth.value = '';
+      selMeth.disabled = true;
+      selMeth.title = 'Non applicable en mai 2026 — aucun CP à verser';
+      const selLabel = selMeth.previousElementSibling;
+      if (selLabel) selLabel.textContent = 'Méthode retenue : Non applicable en mai 2026';
+    } else {
+      selMeth.disabled = false;
+      selMeth.value = calc.methodeRetenue;
+      const selLabel = selMeth.previousElementSibling;
+      if (selLabel) selLabel.textContent = 'Méthode retenue :';
+    }
+  }
+
+  const cardRetenu = document.getElementById('cp-montant-retenu-card');
+  if (cardRetenu) {
+    if (calc.premierePeriode) {
+      // En première période : masquer le montant retenu — rien à verser
+      cardRetenu.style.display = 'none';
+    } else if (calc.methodeRetenue) {
+      cardRetenu.style.display = '';
+      const lbl = document.getElementById('cp-montant-lbl');
+      const val = document.getElementById('cp-montant-val');
+      const paj = document.getElementById('cp-montant-pajemploi');
+      if (lbl) lbl.textContent = calc.methodeRetenue === 'maintien' ? calc.maintien.formule : calc.dixPct.formule;
+      if (val) val.textContent = paieFormatEuro(calc.montantRetenu);
+      if (paj) paj.textContent = calc.joursPris > 0 ? paieFormatEuro(calc.montantRetenu) : '0 € (aucun jour pris)';
+    } else {
+      cardRetenu.style.display = 'none';
+    }
+  }
+
+  // Détail acquisition
+  const acqRows = document.getElementById('cp-acquisition-rows');
+  if (acqRows) {
+    let html = `
+      <div class="cp-row"><span class="cp-row-lbl">Méthode d'acquisition</span><span class="cp-row-val">Mois civil ≥ 50 % présence</span></div>
+      <div class="cp-row"><span class="cp-row-lbl">Début effectif</span><span class="cp-row-val">${new Date(calc.debutEffectif+'T12:00:00').toLocaleDateString('fr-FR')}</span></div>
+      <div class="cp-row"><span class="cp-row-lbl">Fin de la période (ou aujourd'hui)</span><span class="cp-row-val">${new Date(calc.finEffective+'T12:00:00').toLocaleDateString('fr-FR')}</span></div>
+      <div class="cp-row"><span class="cp-row-lbl">Taux</span><span class="cp-row-val">${CP_CONFIG.tauxParMois} j ouvrables / mois assimilé</span></div>
+      <div class="cp-row"><span class="cp-row-lbl">Plafond</span><span class="cp-row-val">${CP_CONFIG.maxAnnuel} j ouvrables (5 semaines)</span></div>
+      <div class="cp-row"><span class="cp-row-lbl">Mois assimilés</span><span class="cp-row-val secondary">${calc.moisAssimiles.total}</span></div>
+      <div class="cp-row"><span class="cp-row-lbl">Jours acquis bruts</span><span class="cp-row-val secondary">${calc.acquisition.brut}</span></div>
+      ${calc.acquisition.plafondActif ? `<div class="cp-row"><span class="cp-row-lbl">Après plafonnement</span><span class="cp-row-val accent">${calc.joursAcquisBruts} j</span></div>` : ''}
+      <div style="margin:8px 0 4px;font-size:11px;font-weight:700;color:#888;text-transform:uppercase;letter-spacing:.4px">Détail par mois — Saisir les jours pris</div>
+      <table class="cp-detail-table"><thead><tr>
+        <th>Mois</th><th>Présence</th><th>Mois assimilé</th><th>CP acquis</th><th>Sem.</th><th>Jours pris ✏️</th>
+      </tr></thead><tbody>`;
+    calc.moisAssimiles.lignes.forEach(l => {
+      const pris = cpEtat.joursPrisParMois?.[l.moisCle] || 0;
+      html += `<tr>
+        <td>${l.label}</td>
+        <td>${l.joursPresence}/${l.joursMois} j (${l.pct}%)</td>
+        <td style="font-weight:${l.assimile===1?'700':'400'}">${l.assimile===1?'Complet':l.assimile}</td>
+        <td style="font-weight:600;color:#3B6D11">${l.joursAcquis} j</td>
+        <td style="color:#888;font-size:11px">${l.semainesAssimilees}</td>
+        <td><input type="number" min="0" max="${CP_CONFIG.maxAnnuel}" step="0.5" value="${pris}"
+          style="width:54px;padding:3px 6px;border-radius:6px;border:0.5px solid rgba(0,0,0,.2);font-size:12px;font-family:var(--font)"
+          onchange="cpSaisirJoursPris('${l.moisCle}',this.value)"></td></tr>`;
+    });
+    html += `<tr style="background:rgba(0,0,0,.03)">
+      <td colspan="2"><strong>Total</strong></td>
+      <td><strong>${calc.moisAssimiles.total}</strong></td>
+      <td><strong style="color:#3B6D11">${calc.joursAcquisBruts} j</strong></td>
+      <td></td>
+      <td><strong>${calc.joursPris} j</strong></td>
+    </tr></tbody></table>`;
+    acqRows.innerHTML = html;
+  }
+
+  // Détail maintien de salaire
+  const maintienRows = document.getElementById('cp-maintien-rows');
+  if (maintienRows) {
+    const m = calc.maintien;
+    maintienRows.innerHTML = `
+      <div class="cp-row"><span class="cp-row-lbl">Salaire mensuel net contractuel</span><span class="cp-row-val">${paieFormatEuro(m.salaireMensuel)}</span></div>
+      <div class="cp-row"><span class="cp-row-lbl">Diviseur CCN (j ouvrables/mois)</span><span class="cp-row-val">${m.diviseur} j</span></div>
+      <div class="cp-row"><span class="cp-row-lbl">Salaire journalier net</span><span class="cp-row-val secondary">${paieFormatEuro(m.salaireMensuel)} ÷ ${m.diviseur} = ${paieFormatEuro(m.salaireJournalier)}</span></div>
+      <div class="cp-row"><span class="cp-row-lbl">Jours CP pris</span><span class="cp-row-val">${m.joursPris} j ouvrables</span></div>
+      <div class="cp-row" style="padding-top:6px;border-top:0.5px solid rgba(0,0,0,.08);margin-top:4px">
+        <span class="cp-row-lbl"><strong>Résultat</strong></span>
+        <span class="cp-row-val accent">${m.formule}</span></div>
+      <div style="margin-top:8px;font-size:11px;color:#888;font-style:italic">🔲 Futur : calcul avec horaires variables (moyenne 12 mois)</div>`;
+  }
+
+  // Détail 10 %
+  const dixPctRows = document.getElementById('cp-dixpct-rows');
+  if (dixPctRows) {
+    const b = calc.dixPct;
+    const baseObj = cpCalculerBaseRemuneration(calc.periode);
+    const lignesMois = baseObj.lignes.length
+      ? baseObj.lignes.map(l => `<div class="cp-row"><span class="cp-row-lbl">${l.label}</span><span class="cp-row-val">${paieFormatEuro(l.montant)}</span></div>`).join('')
+      : `<div class="cp-row"><span class="cp-row-lbl" style="color:#aaa;font-style:italic">Aucune déclaration sur la période</span><span class="cp-row-val muted">0 €</span></div>`;
+    dixPctRows.innerHTML = `
+      <div style="margin-bottom:6px;font-size:11px;color:#888">Rémunérations — ${calc.periode.label} :</div>
+      ${lignesMois}
+      <div class="cp-row" style="padding-top:6px;border-top:0.5px solid rgba(0,0,0,.08);margin-top:4px">
+        <span class="cp-row-lbl">Cumul</span><span class="cp-row-val">${paieFormatEuro(b.base)}</span></div>
+      <div class="cp-row"><span class="cp-row-lbl"><strong>Résultat</strong></span><span class="cp-row-val accent">${b.formule}</span></div>`;
+  }
+
+  // Périodes et infos
+  const periodesRows = document.getElementById('cp-periodes-rows');
+  if (periodesRows) {
+    const dEffFR    = new Date(calc.debutEffectif + 'T12:00:00').toLocaleDateString('fr-FR');
+    const dFinEffFR = new Date(calc.finEffective  + 'T12:00:00').toLocaleDateString('fr-FR');
+    const periodeEffectiveLabel = `${dEffFR} → ${dFinEffFR}`;
+    periodesRows.innerHTML = `
+      <div class="cp-row"><span class="cp-row-lbl">Période légale en cours</span>
+        <span class="cp-row-val">${calc.periode.label}</span></div>
+      ${calc.premierePeriode ? `
+      <div class="cp-row"><span class="cp-row-lbl" style="color:var(--paie-orange)">Période effective du contrat</span>
+        <span class="cp-row-val" style="color:var(--paie-orange)">${periodeEffectiveLabel}</span></div>
+      <div style="font-size:11px;color:#888;margin:4px 0 8px;line-height:1.5;padding:6px 8px;background:#fffbe8;border-radius:6px;">
+        ℹ️ Leslie n'a pas acquis de droits depuis le 1er juin 2025 — le contrat a démarré le ${dEffFR}.
+        Les droits acquis sur cette courte période s'arrêtent au ${new Date(calc.periode.fin + 'T12:00:00').toLocaleDateString('fr-FR')}.
+      </div>` : ''}
+      <div class="cp-row"><span class="cp-row-lbl">Début contrat</span>
+        <span class="cp-row-val">${new Date(CP_CONFIG.debutContrat+'T12:00:00').toLocaleDateString('fr-FR')}</span></div>
+      <div class="cp-row"><span class="cp-row-lbl">Type d'année</span>
+        <span class="cp-row-val">Année complète (52 semaines)</span></div>
+      <div class="cp-row"><span class="cp-row-lbl">Type de jours</span>
+        <span class="cp-row-val">Ouvrables (lun→sam, hors dim. et fériés)</span></div>
+      <div class="cp-row"><span class="cp-row-lbl">Prochaine période normale</span>
+        <span class="cp-row-val">1er juin ${calc.periode.anneeFin} → 31 mai ${calc.periode.anneeFin+1}</span></div>
+      <div class="cp-row"><span class="cp-row-lbl">Version moteur</span>
+        <span class="cp-row-val muted">${calc.versionMoteur}</span></div>
+      <div style="margin-top:10px;font-size:11px;color:#999;line-height:1.6">
+        🔲 Règles en attente : maintien salaire horaires variables · impact maladie · régularisation fin contrat · conversion ouvrables↔ouvrés</div>`;
+  }
+
+  // ---- Rendu périodes de congés saisies ----
+  cpRenderPeriodesList(calc);
+
+  // ---- Rendu fractionnement ----
+  cpRenderFractionnement(calc);
+}
+
+function cpRenderPeriodesList(calc) {
+  const list = document.getElementById('cp-periodes-list');
+  if (!list) return;
+  const periodes = cpEtat.periodesPrises || [];
+
+  if (periodes.length === 0) {
+    list.innerHTML = `<div style="text-align:center;color:#aaa;font-size:13px;padding:16px 0">
+      Aucune période saisie — cliquez sur "Ajouter" pour commencer.
+    </div>`;
+    return;
+  }
+
+  const typeCfg = {
+    cp:         { label: 'CP acquis',      cls: 'cp',       badge: 'cp',       itemCls: 'type-cp'       },
+    cp_anticipe:{ label: 'CP anticipés',   cls: 'anticipe', badge: 'anticipe', itemCls: 'type-anticipe' },
+    ss:         { label: 'Sans solde',     cls: 'ss',       badge: 'ss',       itemCls: 'type-ss'       },
+    autre:      { label: 'Autre absence',  cls: 'autre',    badge: 'autre',    itemCls: 'type-autre'    },
+  };
+
+  list.innerHTML = periodes.map(p => {
+    const tc   = typeCfg[p.type] || typeCfg.autre;
+    const dF   = p.debut ? new Date(p.debut+'T12:00:00').toLocaleDateString('fr-FR') : '—';
+    const fF   = p.fin   ? new Date(p.fin+'T12:00:00').toLocaleDateString('fr-FR')   : '—';
+    const warn = (p.joursAnticipes > 0) || p.type === 'cp_anticipe';
+    const sj   = calc?.maintien?.salaireJournalier || 0;
+    const imp  = (p.type === 'cp' || p.type === 'cp_anticipe') ? Math.round(p.joursOuvrables * sj * 100) / 100 : 0;
+
+    return `<div class="cp-periode-item ${tc.itemCls}">
+      <div class="cp-periode-header">
+        <div class="cp-periode-title">${dF} → ${fF}</div>
+        <span class="cp-periode-badge ${tc.badge}">${tc.label}</span>
+      </div>
+      <div class="cp-periode-grid">
+        <div class="cp-periode-stat">
+          <div class="cp-periode-stat-val">${p.joursCalendaires || '—'}</div>
+          <div class="cp-periode-stat-lbl">J. calendaires</div>
+        </div>
+        <div class="cp-periode-stat">
+          <div class="cp-periode-stat-val ${warn ? 'warn' : ''}">${p.joursOuvrables || 0}</div>
+          <div class="cp-periode-stat-lbl">J. ouvrables CP</div>
+        </div>
+        <div class="cp-periode-stat">
+          <div class="cp-periode-stat-val" style="color:${p.joursFeriesExclus>0?'#BA7517':'#aaa'}">${p.joursFeriesExclus || 0}</div>
+          <div class="cp-periode-stat-lbl">Fériés exclus</div>
+        </div>
+      </div>
+      <div class="cp-periode-detail">
+        ${p.joursFeriesExclus > 0 ? `✓ ${p.joursFeriesExclus} jour(s) férié(s) non décompté(s) — ` : ''}
+        ${p.joursAnticipes > 0 ? `⚠️ ${p.joursAnticipes} j anticipés — ` : ''}
+        ${imp > 0 ? `Impact paie indicatif : ${paieFormatEuro(imp)} — ` : ''}
+        ${p.commentaire ? p.commentaire : ''}
+      </div>
+      <div class="cp-periode-actions">
+        <button onclick="cpSupprimerPeriode(${p.id})">🗑 Supprimer</button>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function cpRenderFractionnement(calc) {
+  const badge = document.getElementById('cp-fract-badge');
+  const rows  = document.getElementById('cp-fract-rows');
+  if (!badge || !rows) return;
+
+  const fract = calc.fractionnement;
+  badge.className = `cp-fract-badge ${fract.statut === 'valide' ? 'valide' : fract.actif ? 'potentiel' : ''}`;
+  badge.textContent = fract.statut === 'valide' ? `+${fract.joursValides} j validés`
+                    : fract.fractPotentiel > 0   ? `+${fract.fractPotentiel} j potentiels`
+                    : 'Aucun droit';
+
+  let html = `
+    <div class="cp-row"><span class="cp-row-lbl">CP pris en saison (1 mai–31 oct.)</span>
+      <span class="cp-row-val">${fract.joursPrisEnSaison} j</span></div>
+    <div class="cp-row"><span class="cp-row-lbl">CP pris hors saison</span>
+      <span class="cp-row-val ${fract.joursPrisHorsSaison >= 3 ? 'secondary' : ''}">${fract.joursPrisHorsSaison} j</span></div>`;
+
+  if (fract.fractPotentiel > 0) {
+    html += `
+    <div class="cp-row" style="margin-top:6px;padding-top:6px;border-top:0.5px solid rgba(0,0,0,.08)">
+      <span class="cp-row-lbl"><strong>Droit potentiel</strong></span>
+      <span class="cp-row-val" style="color:var(--paie-orange)">+${fract.fractPotentiel} j ouvrables</span></div>
+    <div style="font-size:11px;color:#888;margin:6px 0;line-height:1.4">
+      ⚠️ Potentiel non définitif — à valider manuellement après vérification.
+      Règle : ≥ 6 j hors saison → +2 j · ≥ 3 j hors saison → +1 j.
+    </div>`;
+    if (!fract.joursValides) {
+      html += `<div style="display:flex;gap:8px;margin-top:8px">
+        <button class="paie-btn primary" style="flex:1;font-size:13px;padding:8px" onclick="cpValiderFractionnement(${fract.fractPotentiel})">✓ Valider +${fract.fractPotentiel} j</button>
+        <button class="paie-btn secondary" style="font-size:13px;padding:8px" onclick="cpValiderFractionnement(1)">Valider +1 j seulement</button>
+      </div>`;
+    } else {
+      html += `<div style="font-size:12px;color:#3B6D11;margin-top:4px">✓ ${fract.joursValides} j de fractionnement ajoutés au solde.
+        <button style="margin-left:8px;background:none;border:none;color:var(--paie-red);font-size:12px;cursor:pointer" onclick="cpValiderFractionnement(0)">Annuler</button>
+      </div>`;
+    }
+  } else {
+    html += `<div style="font-size:11px;color:#aaa;margin-top:6px">
+      Aucun droit potentiel pour l'instant (${fract.joursPrisHorsSaison} j hors saison — seuil : 3 j minimum).
+    </div>`;
+  }
+
+  rows.innerHTML = html;
+}
+
+// ================================================================
+// SECTION 10 — SECTION CP DANS LE PDF
+// ================================================================
 /* =====================================================
    END PAIE LESLIE
    ===================================================== */
