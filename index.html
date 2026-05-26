@@ -2917,6 +2917,59 @@ function runRegressionTests() {
     const f = cpCalculerFractionnement(periodes);
     return f.joursPrisHorsSaison === 0 && f.fractPotentiel === 0;
   })());
+
+  // ---- Tests arrondi CCN ----
+  assert('CP arrondi CCN : cpCalculerJoursAcquis retourne totalArrondi', (() => {
+    const fakeAssimiles = { total: 0.32, lignes: [] }; // 0,32 mois
+    const r = cpCalculerJoursAcquis(fakeAssimiles);
+    // 0,32 × 2,5 = 0,8 → arrondi CCN à l'entier supérieur = 1
+    return 'totalArrondi' in r && 'arrondageActif' in r;
+  })());
+
+  assert('CP arrondi CCN : 0,8 j bruts → 1 j juridique', (() => {
+    // Simuler 0,32 mois assimilé → 0,32 × 2,5 = 0,8 j bruts
+    const fakeAssimiles = { total: 0.32, lignes: [] };
+    const r = cpCalculerJoursAcquis(fakeAssimiles);
+    return r.brut === 0.8 && r.totalArrondi === 1 && r.arrondageActif === true;
+  })());
+
+  assert('CP arrondi CCN : 2,5 j bruts → 3 j juridique', (() => {
+    // 1 mois complet × 2,5 = 2,5 → arrondi = 3
+    const fakeAssimiles = { total: 1.0, lignes: [] };
+    const r = cpCalculerJoursAcquis(fakeAssimiles);
+    return r.totalArrondi === 3;
+  })());
+
+  assert('CP arrondi CCN : entier exact non modifié (5,0 → 5)', (() => {
+    // 2 mois complets × 2,5 = 5,0 → arrondi = 5 (pas de modification)
+    const fakeAssimiles = { total: 2.0, lignes: [] };
+    const r = cpCalculerJoursAcquis(fakeAssimiles);
+    return r.totalArrondi === 5 && r.arrondageActif === false;
+  })());
+
+  assert('CP arrondi CCN : 0 j bruts → 0 j (pas de Math.ceil(0)=0)', (() => {
+    const fakeAssimiles = { total: 0, lignes: [] };
+    const r = cpCalculerJoursAcquis(fakeAssimiles);
+    return r.totalArrondi === 0;
+  })());
+
+  assert('CP arrondi CCN : cpCalculCongesPayes expose joursAcquisArrondis', (() => {
+    const c = cpCalculCongesPayes();
+    return 'joursAcquisArrondis' in c && Number.isInteger(c.joursAcquisArrondis);
+  })());
+
+  assert('CP arrondi CCN : soldeDays calculé sur joursAcquisArrondis', (() => {
+    const c = cpCalculCongesPayes();
+    // soldeDays = joursAcquisArrondis - joursPris (≥ 0)
+    return c.soldeDays === Math.max(0, c.joursAcquisArrondis - c.joursPris);
+  })());
+
+  assert('CP stub : cpTrouverPremierJourDecompte est une fonction', typeof cpTrouverPremierJourDecompte === 'function');
+
+  assert('CP stub : cpTrouverPremierJourDecompte retourne une date string', (() => {
+    const r = cpTrouverPremierJourDecompte('2026-07-06'); // lundi
+    return typeof r.date === 'string' && r.implemente === false;
+  })());
   console.table(tests);
   const st = document.getElementById('setup-status');
   if (failed.length) {
@@ -5057,8 +5110,10 @@ function cpSectionPDF() {
           } → ${
             new Date(calc.finEffective+'T12:00:00').toLocaleDateString('fr-FR')
           }</td></tr>` : ''}
-      <tr><td style="color:#555;padding:4px 0">Jours acquis à ce jour</td>
-          <td style="font-weight:600;text-align:right;color:#3B6D11">${calc.joursAcquisBruts} j ouvrables</td></tr>
+      <tr><td style="color:#555;padding:4px 0">Jours acquis à ce jour (juridique)</td>
+          <td style="font-weight:600;text-align:right;color:#3B6D11">${calc.joursAcquisArrondis} j ouvrables
+          ${calc.acquisition.arrondageActif ? `<br><span style="font-size:10px;color:#888;font-weight:400">(${calc.joursAcquisBruts} j bruts → ${calc.joursAcquisArrondis} j, arrondi CCN)</span>` : ''}
+          </td></tr>
       <tr><td style="color:#555;padding:4px 0">Jours pris</td>
           <td style="font-weight:600;text-align:right">${calc.joursPris} j</td></tr>
       <tr><td style="color:#555;padding:4px 0">Solde restant</td>
@@ -5397,16 +5452,32 @@ function cpCalculerMoisAssimiles(debut, fin) {
 }
 
 function cpCalculerJoursAcquis(moisAssimiles) {
+  // Valeur décimale interne — conservée pour audit et calculs fins
   const brut     = Math.round(moisAssimiles.total * CP_CONFIG.tauxParMois * 10) / 10;
   const plafonne = Math.min(brut, CP_CONFIG.maxAnnuel);
+
   // Jours supplémentaires fractionnement validés manuellement
   const joursSupp = cpEtat.fractionnement?.valide ? (cpEtat.fractionnement.joursSupp || 0) : 0;
+
+  const totalDecimal = Math.min(plafonne + joursSupp, CP_CONFIG.maxAnnuel);
+
+  // Arrondi CCN : "le résultat décimal est arrondi à l'entier supérieur"
+  // Appliqué APRÈS plafonnement + fractionnement
+  // Cas particulier : 0 reste 0 (pas d'arrondi sur zéro)
+  const totalArrondi = totalDecimal > 0 ? Math.ceil(totalDecimal) : 0;
+
   return {
-    brut, plafonne, joursSupp,
-    total:        Math.min(plafonne + joursSupp, CP_CONFIG.maxAnnuel),
-    plafondActif: brut > CP_CONFIG.maxAnnuel,
-    taux:         CP_CONFIG.tauxParMois,
-    plafond:      CP_CONFIG.maxAnnuel,
+    // Valeurs décimales internes (audit, calculs fins)
+    brut,
+    plafonne,
+    joursSupp,
+    total:          totalDecimal,   // alias legacy — décimal interne
+    // Valeurs juridiques (affichage, droits, comparaisons)
+    totalArrondi,
+    plafondActif:   brut > CP_CONFIG.maxAnnuel,
+    arrondageActif: totalArrondi !== totalDecimal,  // true si l'arrondi a changé la valeur
+    taux:           CP_CONFIG.tauxParMois,
+    plafond:        CP_CONFIG.maxAnnuel,
   };
 }
 
@@ -5580,6 +5651,58 @@ function cpRegularisationFinContrat(soldeDays, salaireJournalier) {
   return { actif: true, montant: Math.round(soldeDays * salaireJournalier * 100) / 100, soldeDays, salaireJournalier };
 }
 
+/*
+  cpTrouverPremierJourDecompte(dateDebutConge, planningHebdo)
+  🔲 STUB — Architecture prête pour implémentation future.
+
+  Règle CCN : "Le premier jour de congé à décompter est le premier jour
+  ouvrable qui aurait dû être travaillé."
+
+  Exemple : si Leslie ne travaille pas le lundi (jour chômé dans son planning),
+  et qu'elle pose du lundi au vendredi, le premier jour décompté est le mardi.
+
+  Structure de planningHebdo attendue :
+  {
+    lundi:    true,   // travaillé normalement
+    mardi:    true,
+    mercredi: true,
+    jeudi:    true,
+    vendredi: true,
+    samedi:   false,  // hors planning contractuel
+    dimanche: false,  // repos hebdomadaire
+  }
+
+  Actuellement : le moteur décompte lun→sam (CCN ouvrables) sans tenir compte
+  du planning individuel. L'impact est faible si le planning est lun→ven standard.
+  À implémenter si le planning évolue ou si un litige sur le premier jour apparaît.
+
+  Retourne : dateStr du premier jour réellement décomptable.
+*/
+function cpTrouverPremierJourDecompte(dateDebutConge, planningHebdo) {
+  // Planning contractuel par défaut : lun→ven (PAIE_CONTRAT)
+  const planning = planningHebdo || {
+    1: true, 2: true, 3: true, 4: true, 5: true, 6: false, 0: false
+  };
+
+  let d = new Date(dateDebutConge + 'T12:00:00');
+  const MAX_ITER = 14; // éviter boucle infinie
+  for (let i = 0; i < MAX_ITER; i++) {
+    const dow = d.getDay();
+    const ds  = fmt(d);
+    // Jour décomptable = dans le planning ET ouvrable CCN (pas férié, pas dimanche)
+    if (planning[dow] && cpIsJourOuvrable(ds)) {
+      return {
+        date:   ds,
+        dow,
+        note:   `Premier jour décomptable : ${ds} (${['Dim','Lun','Mar','Mer','Jeu','Ven','Sam'][dow]})`,
+        implemente: false, // 🔲 stub — non utilisé dans le moteur actuel
+      };
+    }
+    d.setDate(d.getDate() + 1);
+  }
+  return { date: dateDebutConge, note: '🔲 Stub — calcul non appliqué', implemente: false };
+}
+
 // ================================================================
 // SECTION 7 — MOTEUR PRINCIPAL
 // ================================================================
@@ -5595,10 +5718,16 @@ function cpCalculCongesPayes() {
 
   const moisAssimiles  = cpCalculerMoisAssimiles(debutEffectif, finEffective);
   const acquisition    = cpCalculerJoursAcquis(moisAssimiles);
-  const joursAcquisBruts = acquisition.total;
 
-  const joursPris  = cpCalculerJoursPris(periode);
-  const soldeDays  = Math.max(0, Math.round((joursAcquisBruts - joursPris) * 10) / 10);
+  // Valeur décimale interne (audit)
+  const joursAcquisBruts    = acquisition.total;
+  // Valeur juridique CCN — arrondie à l'entier supérieur (source de vérité pour les droits)
+  const joursAcquisArrondis = acquisition.totalArrondi;
+
+  const joursPris = cpCalculerJoursPris(periode);
+
+  // Solde calculé sur les jours juridiques (arrondis)
+  const soldeDays = Math.max(0, joursAcquisArrondis - joursPris);
 
   const maintienObj     = cpCalculerMaintienSalaire(joursPris);
   const baseRemuObj     = cpCalculerBaseRemuneration(periode);
@@ -5626,16 +5755,21 @@ function cpCalculCongesPayes() {
     .reduce((s, p) => s + (p.joursOuvrables || 0), 0);
 
   const alertes = [];
-  if (premierePeriode)              alertes.push({ type: 'info', msg: 'Première période de référence — aucun CP versable avant acquisition suffisante.' });
-  if (joursPris > joursAcquisBruts) alertes.push({ type: 'warn', msg: `Attention : ${joursPris} j pris > ${joursAcquisBruts} j acquis.` });
-  if (acquisition.plafondActif)     alertes.push({ type: 'info', msg: `Plafond de ${CP_CONFIG.maxAnnuel} j atteint (${acquisition.brut} j bruts).` });
-  if (joursAnticipes > 0)           alertes.push({ type: 'warn', msg: `${joursAnticipes} j en CP anticipés — solde négatif en fin de période si non rattrapé.` });
+  if (premierePeriode)                    alertes.push({ type: 'info', msg: 'Première période de référence — aucun CP versable avant acquisition suffisante.' });
+  if (joursPris > joursAcquisArrondis)    alertes.push({ type: 'warn', msg: `Attention : ${joursPris} j pris > ${joursAcquisArrondis} j acquis (valeur juridique).` });
+  if (acquisition.plafondActif)           alertes.push({ type: 'info', msg: `Plafond de ${CP_CONFIG.maxAnnuel} j atteint (${acquisition.brut} j bruts calculés).` });
+  if (acquisition.arrondageActif)         alertes.push({ type: 'info', msg: `Arrondi CCN : ${acquisition.total} j bruts → ${joursAcquisArrondis} j acquis.` });
+  if (joursAnticipes > 0)                 alertes.push({ type: 'warn', msg: `${joursAnticipes} j en CP anticipés — solde négatif en fin de période si non rattrapé.` });
   if (fractionnement.fractPotentiel > 0 && !fractionnement.joursValides)
     alertes.push({ type: 'info', msg: `Fractionnement potentiel : ${fractionnement.fractPotentiel} j suppl. à valider.` });
 
   return {
     periode, debutEffectif, finEffective, premierePeriode, config: CP_CONFIG,
-    moisAssimiles, acquisition, joursAcquisBruts,
+    moisAssimiles, acquisition,
+    // Valeur décimale interne (audit)
+    joursAcquisBruts,
+    // Valeur juridique CCN — arrondie à l'entier supérieur (droits, affichage, comparaisons)
+    joursAcquisArrondis,
     joursPris, soldeDays, joursAnticipes, joursSansSolde,
     maintien: maintienObj,
     salaireJournalierNet: maintienObj.salaireJournalier,
@@ -5903,7 +6037,15 @@ function cpRenderConges() {
   const acqEl  = document.getElementById('cp-acquis');
   const prisEl = document.getElementById('cp-pris');
   const solEl  = document.getElementById('cp-solde');
-  if (acqEl)  acqEl.textContent  = calc.joursAcquisBruts + ' j';
+  // Affichage : valeur juridique arrondie + mention du brut si différent
+  if (acqEl) {
+    if (calc.acquisition.arrondageActif) {
+      acqEl.innerHTML = `${calc.joursAcquisArrondis} j<br>
+        <span style="font-size:11px;font-weight:400;color:#7ABD8E;opacity:.9">${calc.joursAcquisBruts} j bruts → ${calc.joursAcquisArrondis} j ↑</span>`;
+    } else {
+      acqEl.textContent = calc.joursAcquisArrondis + ' j';
+    }
+  }
   if (prisEl) prisEl.textContent = calc.joursPris + ' j';
   if (solEl)  solEl.textContent  = calc.soldeDays + ' j';
 
@@ -5988,8 +6130,14 @@ function cpRenderConges() {
       <div class="cp-row"><span class="cp-row-lbl">Taux</span><span class="cp-row-val">${CP_CONFIG.tauxParMois} j ouvrables / mois assimilé</span></div>
       <div class="cp-row"><span class="cp-row-lbl">Plafond</span><span class="cp-row-val">${CP_CONFIG.maxAnnuel} j ouvrables (5 semaines)</span></div>
       <div class="cp-row"><span class="cp-row-lbl">Mois assimilés</span><span class="cp-row-val secondary">${calc.moisAssimiles.total}</span></div>
-      <div class="cp-row"><span class="cp-row-lbl">Jours acquis bruts</span><span class="cp-row-val secondary">${calc.acquisition.brut}</span></div>
-      ${calc.acquisition.plafondActif ? `<div class="cp-row"><span class="cp-row-lbl">Après plafonnement</span><span class="cp-row-val accent">${calc.joursAcquisBruts} j</span></div>` : ''}
+      <div class="cp-row"><span class="cp-row-lbl">Jours acquis bruts (décimal interne)</span><span class="cp-row-val secondary">${calc.acquisition.brut}</span></div>
+      <div class="cp-row"><span class="cp-row-lbl">Après plafond ${CP_CONFIG.maxAnnuel} j</span><span class="cp-row-val secondary">${calc.acquisition.plafonne}</span></div>
+      <div class="cp-row" style="padding-top:5px;border-top:0.5px solid rgba(0,0,0,.08);margin-top:3px">
+        <span class="cp-row-lbl"><strong>Jours acquis juridiques</strong> <span style="font-size:10px;color:#888;font-weight:400">(arrondi CCN à l'entier supérieur)</span></span>
+        <span class="cp-row-val accent" style="font-size:16px">${calc.joursAcquisArrondis} j</span>
+      </div>
+      ${calc.acquisition.arrondageActif ? `<div style="font-size:11px;color:#3B6D11;margin-top:3px">
+        ↑ ${calc.acquisition.plafonne} j bruts arrondis à ${calc.joursAcquisArrondis} j (CCN : arrondi à l'entier supérieur)</div>` : ''}
       <div style="margin:8px 0 4px;font-size:11px;font-weight:700;color:#888;text-transform:uppercase;letter-spacing:.4px">Détail par mois — Saisir les jours pris</div>
       <table class="cp-detail-table"><thead><tr>
         <th>Mois</th><th>Présence</th><th>Mois assimilé</th><th>CP acquis</th><th>Sem.</th><th>Jours pris ✏️</th>
@@ -6009,7 +6157,10 @@ function cpRenderConges() {
     html += `<tr style="background:rgba(0,0,0,.03)">
       <td colspan="2"><strong>Total</strong></td>
       <td><strong>${calc.moisAssimiles.total}</strong></td>
-      <td><strong style="color:#3B6D11">${calc.joursAcquisBruts} j</strong></td>
+      <td><strong style="color:#3B6D11">${calc.joursAcquisArrondis} j</strong>
+        ${calc.acquisition.arrondageActif
+          ? `<br><span style="font-size:10px;color:#888;font-weight:400">(${calc.joursAcquisBruts} bruts → ${calc.joursAcquisArrondis} arrondis CCN)</span>`
+          : ''}</td>
       <td></td>
       <td><strong>${calc.joursPris} j</strong></td>
     </tr></tbody></table>`;
@@ -6266,7 +6417,11 @@ function clearPinSession() {
 
 async function checkPinOnLoad() {
   if (isPinSessionValid()) return; // session encore valide → accès direct
-  // Charger le hash (Supabase ou local)
+
+  // Afficher l'écran PIN IMMÉDIATEMENT avant tout chargement réseau
+  showPinScreen();
+
+  // Charger le hash en arrière-plan (Supabase ou local)
   const hintEl = document.getElementById('pin-offline-hint');
   try {
     await loadPinHash();
@@ -6274,7 +6429,6 @@ async function checkPinOnLoad() {
   } catch(e) {
     if (hintEl) hintEl.textContent = 'Mode hors-ligne : le PIN local est utilisé.';
   }
-  showPinScreen();
 }
 
 function showPinScreen() {
@@ -6314,14 +6468,24 @@ function pinDel() {
 }
 
 async function validatePin() {
-  const hash = await sha256(pinBuffer);
+  const hash       = await sha256(pinBuffer);
   const storedHash = pinRemoteHash || localStorage.getItem(PIN_HASH_KEY);
+
+  // Si le hash n'est pas encore chargé (réseau lent), attendre un peu et réessayer
+  if (!storedHash) {
+    document.getElementById('pin-error').textContent = 'Chargement en cours…';
+    await new Promise(r => setTimeout(r, 1200));
+    pinBuffer = '';
+    updatePinDots();
+    document.getElementById('pin-error').textContent = 'Réessaie dans un instant.';
+    setTimeout(() => { document.getElementById('pin-error').textContent = ''; }, 2000);
+    return;
+  }
 
   if (hash === storedHash) {
     savePinSession();
     hidePinScreen();
   } else {
-    // Mauvais PIN
     for (let i = 0; i < 4; i++) {
       const dot = document.getElementById('pd' + i);
       if (dot) { dot.classList.remove('filled'); dot.classList.add('error'); }
