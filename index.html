@@ -1304,7 +1304,7 @@ if ('serviceWorker' in navigator) {
         <div class="pajemploi-row">
           <div class="pajemploi-row-label">
             Frais de repas
-            <small id="pj-repas-detail">— repas × 5,50 €</small>
+            <small id="pj-repas-detail">— repas × tarif (dej 3,50 € / goûter 2,00 €)</small>
           </div>
           <div class="pajemploi-row-value pv-euro pv-zero" id="pj-repas">—</div>
           <button class="pajemploi-row-copy" onclick="paieCopy('pj-repas')">Copier</button>
@@ -1656,7 +1656,7 @@ if ('serviceWorker' in navigator) {
       <div class="paie-contrat-row"><span class="paie-contrat-label">Taux horaire brut</span><span class="paie-contrat-value">6,66 € / h</span></div>
       <div class="paie-contrat-row"><span class="paie-contrat-label">Taux majoration</span><span class="paie-contrat-value">+20 % au-delà de 45 h/sem.</span></div>
       <div class="paie-contrat-row"><span class="paie-contrat-label">Indemnité d'entretien</span><span class="paie-contrat-value">6,50 € / jour prévu</span></div>
-      <div class="paie-contrat-row"><span class="paie-contrat-label">Frais de repas</span><span class="paie-contrat-value">5,50 € / repas</span></div>
+      <div class="paie-contrat-row"><span class="paie-contrat-label">Frais de repas</span><span class="paie-contrat-value">Déjeuner 3,50 € · Goûter 2,00 €</span></div>
       <div class="paie-contrat-row"><span class="paie-contrat-label">Mode de paiement</span><span class="paie-contrat-value">Pajemploi+</span></div>
       <div class="paie-contrat-row"><span class="paie-contrat-label">Date de paiement</span><span class="paie-contrat-value">Entre le 27 et le 5 du mois suivant</span></div>
       <div class="paie-contrat-row"><span class="paie-contrat-label">Type d'année</span><span class="paie-contrat-value">Année complète (52 semaines)</span></div>
@@ -1718,17 +1718,30 @@ CREATE TABLE IF NOT EXISTS attendance_records (
   arrival_time TIME,
   departure_time TIME,
   notes TEXT,
-  is_day_off BOOLEAN DEFAULT FALSE,
+  is_day_off     BOOLEAN DEFAULT FALSE,
+  -- Données Paie (source de vérité partagée calendrier ↔ paie)
+  repas_midi     BOOLEAN DEFAULT TRUE,
+  repas_gouter   BOOLEAN DEFAULT FALSE,
+  entretien_du   BOOLEAN DEFAULT TRUE,
+  paul_absent    BOOLEAN DEFAULT FALSE,
+  motif_paul     TEXT    DEFAULT '',
+  certif_medical BOOLEAN DEFAULT FALSE,
+  leslie_conge   BOOLEAN DEFAULT FALSE,
+  type_conge     TEXT    DEFAULT '',
   updated_at TIMESTAMPTZ DEFAULT NOW()
 );
 
--- Mise à jour si la table existe déjà depuis une ancienne version
+-- Mise à jour si la table existe déjà
 ALTER TABLE attendance_records
-  ADD COLUMN IF NOT EXISTS is_day_off BOOLEAN DEFAULT FALSE;
-
--- Activer Realtime
--- Realtime non nécessaire dans cette version REST/polling.
--- La synchro entre appareils se fait par relecture automatique toutes les 5 secondes.
+  ADD COLUMN IF NOT EXISTS is_day_off     BOOLEAN DEFAULT FALSE,
+  ADD COLUMN IF NOT EXISTS repas_midi     BOOLEAN DEFAULT TRUE,
+  ADD COLUMN IF NOT EXISTS repas_gouter   BOOLEAN DEFAULT FALSE,
+  ADD COLUMN IF NOT EXISTS entretien_du   BOOLEAN DEFAULT TRUE,
+  ADD COLUMN IF NOT EXISTS paul_absent    BOOLEAN DEFAULT FALSE,
+  ADD COLUMN IF NOT EXISTS motif_paul     TEXT    DEFAULT '',
+  ADD COLUMN IF NOT EXISTS certif_medical BOOLEAN DEFAULT FALSE,
+  ADD COLUMN IF NOT EXISTS leslie_conge   BOOLEAN DEFAULT FALSE,
+  ADD COLUMN IF NOT EXISTS type_conge     TEXT    DEFAULT '';
 
 -- Politique RLS ouverte (accès par URL)
 ALTER TABLE attendance_records ENABLE ROW LEVEL SECURITY;
@@ -1940,6 +1953,72 @@ CREATE POLICY "acces_libre_pajemploi" ON pajemploi_declarations
         <label>Note (optionnel)</label>
         <textarea id="modal-notes" placeholder="Activité, remarque…"></textarea>
       </div>
+
+      <!-- ===== Section Paie (visible uniquement les jours contractuels) ===== -->
+      <div id="modal-paie-section">
+        <div style="margin:14px 0 8px;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:#999">Détails Paie</div>
+
+        <!-- Repas -->
+        <div style="display:flex;gap:14px;margin-bottom:10px;flex-wrap:wrap">
+          <div class="dayoff-box" style="flex:1;min-width:140px">
+            <input type="checkbox" id="modal-repas-midi">
+            <div><label for="modal-repas-midi">Déjeuner dû</label>
+            <div class="hint">3,50 €</div></div>
+          </div>
+          <div class="dayoff-box" style="flex:1;min-width:140px">
+            <input type="checkbox" id="modal-repas-gouter">
+            <div><label for="modal-repas-gouter">Goûter dû</label>
+            <div class="hint">2,00 €</div></div>
+          </div>
+        </div>
+
+        <!-- Entretien -->
+        <div class="dayoff-box" style="margin-bottom:10px">
+          <input type="checkbox" id="modal-entretien">
+          <div><label for="modal-entretien">Indemnité d'entretien due</label>
+          <div class="hint">6,50 €</div></div>
+        </div>
+
+        <!-- Paul absent -->
+        <div class="dayoff-box" style="margin-bottom:4px">
+          <input type="checkbox" id="modal-absent" onchange="modalMajAbsent()">
+          <div><label for="modal-absent">Paul absent</label></div>
+        </div>
+        <div id="modal-absent-details" style="display:none;padding-left:28px;margin-bottom:10px">
+          <div class="field" style="margin-bottom:6px">
+            <label>Motif</label>
+            <select id="modal-motif" style="width:100%;padding:7px 10px;border-radius:10px;border:0.5px solid rgba(0,0,0,.18);font-size:14px;font-family:var(--font)">
+              <option value="">— Sélectionner —</option>
+              <option value="maladie">Maladie Paul</option>
+              <option value="conge_parental">Congé parental</option>
+              <option value="autre">Autre</option>
+            </select>
+          </div>
+          <div class="dayoff-box">
+            <input type="checkbox" id="modal-certif">
+            <div><label for="modal-certif">Certificat médical remis</label></div>
+          </div>
+        </div>
+
+        <!-- Leslie en congé -->
+        <div class="dayoff-box" style="margin-bottom:4px">
+          <input type="checkbox" id="modal-leslie-conge" onchange="modalMajLeslie()">
+          <div><label for="modal-leslie-conge">Leslie en congé / absence</label></div>
+        </div>
+        <div id="modal-leslie-details" style="display:none;padding-left:28px;margin-bottom:10px">
+          <div class="field">
+            <label>Type de congé</label>
+            <select id="modal-type-conge" style="width:100%;padding:7px 10px;border-radius:10px;border:0.5px solid rgba(0,0,0,.18);font-size:14px;font-family:var(--font)">
+              <option value="">— Sélectionner —</option>
+              <option value="cp_prevu">Congés payés prévus</option>
+              <option value="sans_solde">Congés sans solde</option>
+              <option value="maladie_leslie">Maladie Leslie</option>
+              <option value="autre">Autre</option>
+            </select>
+          </div>
+        </div>
+      </div><!-- /modal-paie-section -->
+
       <button class="save-btn" onclick="saveRecord()">Enregistrer</button>
     </div>
   </div>
@@ -2117,7 +2196,7 @@ async function loadAll(silent = false) {
   try {
     let data;
     try {
-      data = await sbRequest('/rest/v1/attendance_records?select=date,arrival_time,departure_time,notes,is_day_off,updated_at&order=date.desc');
+      data = await sbRequest('/rest/v1/attendance_records?select=date,arrival_time,departure_time,notes,is_day_off,repas_midi,repas_gouter,entretien_du,paul_absent,motif_paul,certif_medical,leslie_conge,type_conge,updated_at&order=date.desc');
       supportsDayOffColumn = true;
     } catch (e) {
       const msg = String(e.message || e);
@@ -2132,11 +2211,32 @@ async function loadAll(silent = false) {
 
     const remoteRecords = {};
     (data || []).forEach(row => {
-      remoteRecords[row.date] = {
-        arrival: row.arrival_time ? row.arrival_time.slice(0,5) : null,
+      const ds  = row.date;
+      const dow = new Date(ds + 'T12:00:00').getDay(); // 0=dim, 1=lun…5=ven, 6=sam
+      const estJourContrat = dow >= 1 && dow <= 5 && ds >= (PAIE_CONTRAT?.debutContrat || '2026-05-18');
+      const estFerie = isHoliday(ds);
+
+      // Defaults intelligents selon le type de jour
+      const defRepasMidi   = estJourContrat && !estFerie && !row.is_day_off;
+      const defEntretienDu = estJourContrat && !estFerie && !row.is_day_off;
+
+      remoteRecords[ds] = {
+        arrival:   row.arrival_time   ? row.arrival_time.slice(0,5)  : null,
         departure: row.departure_time ? row.departure_time.slice(0,5) : null,
-        notes: row.notes || '',
-        dayOff: supportsDayOffColumn ? !!row.is_day_off : false
+        notes:     row.notes   || '',
+        dayOff:    supportsDayOffColumn ? !!row.is_day_off : false,
+        // Données Paie — null en Supabase = jamais modifié → utiliser le défaut intelligent
+        repasMidi:    row.repas_midi    !== null && row.repas_midi    !== undefined ? !!row.repas_midi    : defRepasMidi,
+        repasGouter:  row.repas_gouter  !== null && row.repas_gouter  !== undefined ? !!row.repas_gouter  : false,
+        entretien:    row.entretien_du  !== null && row.entretien_du  !== undefined ? !!row.entretien_du  : defEntretienDu,
+        absent:       row.paul_absent   !== null && row.paul_absent   !== undefined ? !!row.paul_absent   : false,
+        motif:        row.motif_paul    || '',
+        motifPaul:    row.motif_paul    || '',
+        certif:       row.certif_medical !== null && row.certif_medical !== undefined ? !!row.certif_medical : false,
+        leslieConge:  row.leslie_conge  !== null && row.leslie_conge  !== undefined ? !!row.leslie_conge  : false,
+        typeConge:    row.type_conge    || '',
+        // alias legacy
+        repas: row.repas_midi !== null && row.repas_midi !== undefined ? !!row.repas_midi : defRepasMidi,
       };
     });
 
@@ -2199,51 +2299,88 @@ async function upsertRecord(ds) {
   setSyncStatus('syncing');
   const r = records[ds] || {};
 
-  const buildPayload = (includeDayOff) => ({
-    date: ds,
-    arrival_time: r.arrival || null,
-    departure_time: r.departure || null,
-    notes: r.notes || null,
-    ...(includeDayOff ? { is_day_off: !!r.dayOff } : {}),
-    updated_at: new Date().toISOString()
-  });
+  const buildPayload = (opts = {}) => {
+    const p = {
+      date: ds,
+      arrival_time:   r.arrival   || null,
+      departure_time: r.departure || null,
+      notes:          r.notes     || null,
+      updated_at:     new Date().toISOString()
+    };
+    if (opts.dayOff)  p.is_day_off = !!r.dayOff;
+    if (opts.paie) {
+      p.repas_midi     = r.repasMidi    !== undefined ? !!r.repasMidi    : null;
+      p.repas_gouter   = r.repasGouter  !== undefined ? !!r.repasGouter  : null;
+      p.entretien_du   = r.entretien    !== undefined ? !!r.entretien    : null;
+      p.paul_absent    = r.absent       !== undefined ? !!r.absent       : null;
+      p.motif_paul     = r.motifPaul    || r.motif    || null;
+      p.certif_medical = r.certif       !== undefined ? !!r.certif       : null;
+      p.leslie_conge   = r.leslieConge  !== undefined ? !!r.leslieConge  : null;
+      p.type_conge     = r.typeConge    || null;
+    }
+    return p;
+  };
 
-  try {
+  const doPost = async (payload) => {
     await sbRequest('/rest/v1/attendance_records?on_conflict=date', {
       method: 'POST',
       headers: { 'Prefer': 'resolution=merge-duplicates,return=minimal' },
-      body: JSON.stringify(buildPayload(supportsDayOffColumn))
+      body: JSON.stringify(payload)
     });
+  };
+
+  // Tentative 1 : tout (dayOff + colonnes Paie)
+  try {
+    await doPost(buildPayload({ dayOff: supportsDayOffColumn, paie: true }));
     setSyncStatus('ok');
     setTimeout(() => loadAll(true), 300);
     return true;
   } catch(e) {
     const msg = String(e.message || e);
-    if (supportsDayOffColumn && (msg.includes('is_day_off') || msg.includes('column'))) {
-      console.warn('Colonne is_day_off absente : retry écriture sans ce champ pour ne pas casser la synchro horaires.', e);
-      supportsDayOffColumn = false;
-      try {
-        await sbRequest('/rest/v1/attendance_records?on_conflict=date', {
-          method: 'POST',
-          headers: { 'Prefer': 'resolution=merge-duplicates,return=minimal' },
-          body: JSON.stringify(buildPayload(false))
-        });
-        setSyncStatus('ok', 'mode compatibilité');
-        const st = document.getElementById('setup-status');
-        if (st) st.textContent = '⚠️ Horaires synchronisés, mais colonne is_day_off absente. Exécute le SQL Config pour synchroniser les jours chômés.';
-        setTimeout(() => loadAll(true), 300);
-        return true;
-      } catch (retryError) {
-        console.error('Erreur écriture Supabase après retry sans is_day_off:', retryError);
-        e = retryError;
-      }
+    const isColErr = msg.includes('column') || msg.includes('does not exist') || msg.includes('42703');
+
+    if (!isColErr) {
+      // Erreur réseau ou autre — pas la peine de retry
+      console.error('Erreur écriture Supabase:', e);
+      setSyncStatus('offline', e.message || 'écriture impossible');
+      const st = document.getElementById('setup-status');
+      if (st) st.textContent = '❌ Erreur écriture Supabase : ' + (e.message || JSON.stringify(e));
+      showToast('⚠️ Non synchronisé');
+      return false;
     }
-    console.error('Erreur écriture Supabase:', e);
-    setSyncStatus('offline', e.message || 'écriture impossible');
-    const st = document.getElementById('setup-status');
-    if (st) st.textContent = '❌ Erreur écriture Supabase : ' + (e.message || JSON.stringify(e));
-    showToast('⚠️ Non synchronisé');
-    return false;
+
+    // Tentative 2 : sans les colonnes Paie (SQL pas encore exécuté)
+    console.warn('Colonnes Paie absentes dans Supabase — retry sans. Exécute le SQL Config.', e);
+    try {
+      await doPost(buildPayload({ dayOff: supportsDayOffColumn, paie: false }));
+      setSyncStatus('ok', 'colonnes Paie manquantes');
+      const st = document.getElementById('setup-status');
+      if (st) st.textContent = '⚠️ Horaires sync OK, mais colonnes Paie absentes. Exécute le SQL Config → attendance_records.';
+      setTimeout(() => loadAll(true), 300);
+      return true;
+    } catch(e2) {
+      const msg2 = String(e2.message || e2);
+      // Tentative 3 : sans dayOff non plus
+      if (msg2.includes('column') || msg2.includes('does not exist') || msg2.includes('42703')) {
+        supportsDayOffColumn = false;
+        try {
+          await doPost(buildPayload({ dayOff: false, paie: false }));
+          setSyncStatus('ok', 'mode compatibilité');
+          const st = document.getElementById('setup-status');
+          if (st) st.textContent = '⚠️ Horaires sync OK (mode compatibilité). Exécute le SQL Config.';
+          setTimeout(() => loadAll(true), 300);
+          return true;
+        } catch(e3) {
+          console.error('Erreur écriture Supabase après tous les retries:', e3);
+        }
+      }
+      console.error('Erreur écriture Supabase retry 2:', e2);
+      setSyncStatus('offline', e2.message || 'écriture impossible');
+      const st = document.getElementById('setup-status');
+      if (st) st.textContent = '❌ Erreur écriture Supabase : ' + (e2.message || JSON.stringify(e2));
+      showToast('⚠️ Non synchronisé');
+      return false;
+    }
   }
 }
 
@@ -2415,15 +2552,51 @@ function renderHistory() {
 
 function openModal(ds) {
   modalDate = ds;
-  const r = records[ds] || {};
-  const d = new Date(ds + 'T12:00:00');
-  const days = ['Dimanche','Lundi','Mardi','Mercredi','Jeudi','Vendredi','Samedi'];
+  const r   = records[ds] || {};
+  const d   = new Date(ds + 'T12:00:00');
+  const dow = d.getDay();
+  const days   = ['Dimanche','Lundi','Mardi','Mercredi','Jeudi','Vendredi','Samedi'];
   const months = ['jan.','fév.','mars','avr.','mai','juin','juil.','août','sept.','oct.','nov.','déc.'];
-  document.getElementById('modal-title').textContent = `${days[d.getDay()]} ${d.getDate()} ${months[d.getMonth()]} ${d.getFullYear()}`;
-  document.getElementById('modal-arrival').value = r.arrival || '';
+  document.getElementById('modal-title').textContent = `${days[dow]} ${d.getDate()} ${months[d.getMonth()]} ${d.getFullYear()}`;
+
+  // Champs horaires
+  document.getElementById('modal-arrival').value   = r.arrival   || '';
   document.getElementById('modal-departure').value = r.departure || '';
-  document.getElementById('modal-notes').value = r.notes || '';
-  document.getElementById('modal-dayoff').checked = !!r.dayOff;
+  document.getElementById('modal-notes').value     = r.notes     || '';
+  document.getElementById('modal-dayoff').checked  = !!r.dayOff;
+
+  // Champs Paie — calculer les defaults selon le type de jour
+  const estJourContrat = dow >= 1 && dow <= 5 && ds >= PAIE_CONTRAT.debutContrat;
+  const estFerie = isHoliday(ds);
+  const defRepasMidi   = estJourContrat && !estFerie && !r.dayOff;
+  const defEntretien   = estJourContrat && !estFerie && !r.dayOff;
+
+  const repasMidiEl   = document.getElementById('modal-repas-midi');
+  const repasGouterEl = document.getElementById('modal-repas-gouter');
+  const entretienEl   = document.getElementById('modal-entretien');
+  const absentEl      = document.getElementById('modal-absent');
+  const motifEl       = document.getElementById('modal-motif');
+  const certifEl      = document.getElementById('modal-certif');
+  const leslieEl      = document.getElementById('modal-leslie-conge');
+  const typeCongeEl   = document.getElementById('modal-type-conge');
+
+  if (repasMidiEl)   repasMidiEl.checked   = r.repasMidi   !== undefined ? !!r.repasMidi   : defRepasMidi;
+  if (repasGouterEl) repasGouterEl.checked = r.repasGouter !== undefined ? !!r.repasGouter : false;
+  if (entretienEl)   entretienEl.checked   = r.entretien   !== undefined ? !!r.entretien   : defEntretien;
+  if (absentEl)      absentEl.checked      = !!r.absent;
+  if (motifEl)       motifEl.value         = r.motifPaul   || r.motif    || '';
+  if (certifEl)      certifEl.checked      = !!r.certif;
+  if (leslieEl)      leslieEl.checked      = !!r.leslieConge;
+  if (typeCongeEl)   typeCongeEl.value      = r.typeConge   || '';
+
+  // Afficher/masquer la section Paie selon que le jour est contractuel
+  const paieSectionEl = document.getElementById('modal-paie-section');
+  if (paieSectionEl) paieSectionEl.style.display = estJourContrat ? '' : 'none';
+
+  // Afficher/masquer les sous-sections absences
+  modalMajAbsent();
+  modalMajLeslie();
+
   updateModalDuration();
   document.getElementById('modal').classList.add('open');
 }
@@ -2447,11 +2620,26 @@ function updateModalDuration() {
 }
 
 function saveRecord() {
-  const a = document.getElementById('modal-arrival').value;
-  const dep = document.getElementById('modal-departure').value;
-  const notes = document.getElementById('modal-notes').value;
-  const dayOff = document.getElementById('modal-dayoff').checked;
-  records[modalDate] = { arrival: a || null, departure: dep || null, notes, dayOff };
+  const a       = document.getElementById('modal-arrival').value;
+  const dep     = document.getElementById('modal-departure').value;
+  const notes   = document.getElementById('modal-notes').value;
+  const dayOff  = document.getElementById('modal-dayoff').checked;
+  // Champs Paie
+  const repasMidi   = document.getElementById('modal-repas-midi')?.checked ?? false;
+  const repasGouter = document.getElementById('modal-repas-gouter')?.checked ?? false;
+  const entretien   = document.getElementById('modal-entretien')?.checked ?? false;
+  const absent      = document.getElementById('modal-absent')?.checked ?? false;
+  const motifPaul   = document.getElementById('modal-motif')?.value || '';
+  const certif      = document.getElementById('modal-certif')?.checked ?? false;
+  const leslieConge = document.getElementById('modal-leslie-conge')?.checked ?? false;
+  const typeConge   = document.getElementById('modal-type-conge')?.value || '';
+
+  records[modalDate] = {
+    arrival: a || null, departure: dep || null, notes, dayOff,
+    repasMidi, repasGouter, repas: repasMidi, // alias legacy
+    entretien, absent, motifPaul, motif: motifPaul,
+    certif, leslieConge, typeConge,
+  };
   saveLocal();
   if (dayOff && !supportsDayOffColumn) {
     showToast('⚠️ Jour chômé local seulement : exécute le SQL Config');
@@ -2459,11 +2647,27 @@ function saveRecord() {
   upsertRecord(modalDate);
   closeModalDirect();
   renderAll();
+  // Si module Paie actif, mettre à jour le détail
+  if (document.getElementById('tab-paie')?.classList.contains('active')) {
+    paieRenderDetail();
+    paieRenderDeclaration();
+  }
   showToast('Enregistré ✓');
 }
 
 function closeModal(e) { if(e.target.id==='modal') closeModalDirect(); }
 function closeModalDirect() { document.getElementById('modal').classList.remove('open'); }
+
+function modalMajAbsent() {
+  const checked = document.getElementById('modal-absent')?.checked;
+  const det = document.getElementById('modal-absent-details');
+  if (det) det.style.display = checked ? '' : 'none';
+}
+function modalMajLeslie() {
+  const checked = document.getElementById('modal-leslie-conge')?.checked;
+  const det = document.getElementById('modal-leslie-details');
+  if (det) det.style.display = checked ? '' : 'none';
+}
 
 function switchTab(tab) {
   document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
@@ -2725,25 +2929,26 @@ function runRegressionTests() {
     return c.joursRepas === 6;
   })());
 
-  assert('Paie mai 2026 : frais repas = 33,00 €', (() => {
+  assert('Paie mai 2026 : frais repas déjeuner = 6 × 3,50 = 21,00 € (bulletin)', (() => {
+    // Bulletin réel : 6 déjeuners × 3,50 € = 21,00 €
     const fake = [
       mkLigne('2026-05-18', { durReelle: 120, dur: 120 }),
       mkLigne('2026-05-19', { durReelle: 120, dur: 120 }),
       mkLigne('2026-05-20', { durReelle: 150, dur: 150 }),
       { date: '2026-05-21', durReelle: 300, dur: 300, dayOff: false, leslieConge: false,
         absent: false, motifPaul:'', motif:'', certif: false, notes:'',
-        arrival: null, departure: null, repas: true },
+        arrival: null, departure: null, repasMidi: true },
       { date: '2026-05-22', durReelle: 360, dur: 360, dayOff: false, leslieConge: false,
         absent: false, motifPaul:'', motif:'', certif: false, notes:'',
-        arrival: null, departure: null, repas: true },
+        arrival: null, departure: null, repasMidi: true },
       mkLigne('2026-05-26', { durReelle: 540, dur: 540 }),
       mkLigne('2026-05-29', { durReelle: 540, dur: 540 }),
     ];
     const c = paieCalculerMois(5, 2026, fake);
-    return Math.abs(c.totalRepas - 33.00) < 0.01;
+    return Math.abs(c.totalRepasMidi - 21.00) < 0.01;
   })());
 
-  assert('Paie mai 2026 : entretien = 9 × 6,50 = 58,50 €', (() => {
+  assert('Paie mai 2026 : entretien = 9 × 6,50 = 58,50 € (bulletin)', (() => {
     const fake = [
       mkLigne('2026-05-18', { durReelle: 120, dur: 120 }),
       mkLigne('2026-05-19', { durReelle: 120, dur: 120 }),
@@ -2755,6 +2960,70 @@ function runRegressionTests() {
     ];
     const c = paieCalculerMois(5, 2026, fake);
     return Math.abs(c.totalEntretien - 58.50) < 0.01;
+  })());
+
+  // ---- Tests Cour de cassation (validés sur bulletin mai 2026) ----
+  assert('Paie Cour cassation : jours ouvrés mai 2026 = 21', (() => {
+    const fake = [mkLigne('2026-05-26', { durReelle: 540, dur: 540 })];
+    const c = paieCalculerMois(5, 2026, fake);
+    return c.joursOuvresMoisTotal === 21;
+  })());
+
+  assert('Paie Cour cassation : jours hors contrat mai 2026 = 11', (() => {
+    const fake = [mkLigne('2026-05-26', { durReelle: 540, dur: 540 })];
+    const c = paieCalculerMois(5, 2026, fake);
+    return c.joursHorsContratOuvres === 11;
+  })());
+
+  assert('Paie Cour cassation : jours ouvrés actifs mai 2026 = 10', (() => {
+    const fake = [mkLigne('2026-05-26', { durReelle: 540, dur: 540 })];
+    const c = paieCalculerMois(5, 2026, fake);
+    return c.joursOuvresActifs === 10;
+  })());
+
+  assert('Paie Cour cassation : jours activité Pajemploi mai 2026 = 11 (bulletin)', (() => {
+    // ceil(21.6667 × 10/21) = ceil(10.3175) = 11
+    const fake = [
+      mkLigne('2026-05-18', { durReelle: 117, dur: 117 }),
+      mkLigne('2026-05-19', { durReelle: 105, dur: 105 }),
+      mkLigne('2026-05-20', { durReelle: 150, dur: 150 }),
+      mkLigne('2026-05-21', { durReelle: 300, dur: 300 }),
+      mkLigne('2026-05-22', { durReelle: 360, dur: 360 }),
+      mkLigne('2026-05-26', { durReelle: 540, dur: 540 }),
+      mkLigne('2026-05-29', { durReelle: 440, dur: 440 }),
+    ];
+    const c = paieCalculerMois(5, 2026, fake);
+    return c.joursActivitePajemploi === 11;
+  })());
+
+  assert('Paie Cour cassation : retenue ≈ 885,27 € (bulletin)', (() => {
+    // Données exactes du bulletin : absences déduites = 29h50 = 29.833h
+    const fake = [
+      mkLigne('2026-05-18', { durReelle: 117, dur: 117 }),  // 1h57 réel
+      mkLigne('2026-05-19', { durReelle: 105, dur: 105 }),  // 1h45 réel
+      mkLigne('2026-05-20', { durReelle: 150, dur: 150 }),  // 2h30 réel
+      mkLigne('2026-05-21', { durReelle: 300, dur: 300 }),  // 5h réel
+      mkLigne('2026-05-22', { durReelle: 360, dur: 360 }),  // 6h réel
+      mkLigne('2026-05-26', { durReelle: 540, dur: 540 }),  // 9h conforme
+      mkLigne('2026-05-28', { durReelle: 540, dur: 540 }),
+      mkLigne('2026-05-29', { durReelle: 440, dur: 440 }),  // 7h20 (1h40 d'absence)
+    ];
+    const c = paieCalculerMois(5, 2026, fake);
+    return c.retenueBrut !== undefined && Math.abs(c.retenueBrut - 885.27) < 1.00;
+  })());
+
+  assert('Paie Cour cassation : heures Pajemploi mai 2026 = 62 (bulletin)', (() => {
+    const fake = [
+      mkLigne('2026-05-18', { durReelle: 117, dur: 117 }),
+      mkLigne('2026-05-19', { durReelle: 105, dur: 105 }),
+      mkLigne('2026-05-20', { durReelle: 150, dur: 150 }),
+      mkLigne('2026-05-21', { durReelle: 300, dur: 300 }),
+      mkLigne('2026-05-22', { durReelle: 360, dur: 360 }),
+      mkLigne('2026-05-26', { durReelle: 540, dur: 540 }),
+      mkLigne('2026-05-29', { durReelle: 440, dur: 440 }),
+    ];
+    const c = paieCalculerMois(5, 2026, fake);
+    return c.heuresNormalesDeclarees === 62;
   })());
 
   assert('Paie : mois normal forfait 195 h / 1014 €', (() => {
@@ -3544,14 +3813,21 @@ const PAIE_CONTRAT = {
   debutNormal:       '2026-05-26',       // premier jour normal après adaptation
   planningJours:     [1,2,3,4,5],        // lundi=1 … vendredi=5 (getDay() JS : dim=0)
   heuresJour:        9,                  // 9 h / jour contractuelles (= 540 min)
-  heuresHebdo:       45,                 // seuil forfait hebdo
-  mensualisation:    195,                // h mensualisées (mois complets)
-  salaireMensuelNet: 1014,               // € net forfait (mois complets)
-  tauxHoraireNet:    5.20,               // € net / h (pour majorations)
-  tauxMajoration:    0.20,               // +20 % au-delà de 45 h/sem.
-  indemEntretien:    6.50,               // € / jour prévu
-  indemRepas:        5.50,               // € / repas
-  plafondMaladieAn:  5,                  // jours maladie Paul / an avec certif.
+  heuresHebdo:       45,                 // heures/semaine forfait
+  joursHebdo:        5,                  // jours/semaine planning (pour formule jours activité)
+  mensualisation:    195,                // h mensualisées (mois complet)
+  salaireBrutMensuel:1298.70,            // € brut forfait mensuel complet
+  salaireMensuelNet: 1014,               // € net forfait (mois complet — affiché CP)
+  tauxHoraireBrut:   6.66,              // € brut / h (pour retenue Cour de cassation)
+  tauxHoraireNet:    5.20,              // € net / h (pour Pajemploi et majorations)
+  tauxMajoration:    0.20,              // +20 % au-delà de 45 h/sem.
+  indemEntretien:    6.50,              // € / jour prévu
+  // Repas — tarification séparée
+  indemRepasMidi:    3.50,              // € / déjeuner
+  indemRepasGouter:  2.00,              // € / goûter
+  indemRepasSoir:    0,                 // € / repas du soir (non utilisé actuellement)
+  indemRepas:        5.50,             // legacy — ne plus utiliser (remplacé par midi/goûter)
+  plafondMaladieAn:  5,                 // jours maladie Paul / an avec certif.
 };
 
 /* -------------------------------------------------------
@@ -3881,11 +4157,16 @@ function paieCalculerMois(mois, annee, horairesImportes) {
     joursAccueilReel: 0,       // jours où Paul est réellement/présumément accueilli
     joursIndemnitesEntretien: 0, // jours ouvrant droit à entretien
     joursRepas: 0,             // jours ouvrant droit aux repas
-    // ---- legacy aliases (pour compatibilité affichage existant) ----
+    // ---- legacy aliases ----
+    joursRepas: 0,             // total jours avec au moins un repas (compat)
     nbEntretien: 0,            // = joursIndemnitesEntretien
-    nbRepas: 0,                // = joursRepas
+    nbRepas: 0,                // = joursRepas (legacy)
+    nbRepasMidi: 0,            // déjeuners
+    nbRepasGouter: 0,          // goûters
     totalEntretien: 0,
     totalRepas: 0,
+    totalRepasMidi: 0,
+    totalRepasGouter: 0,
     alertes: [],
     alertesLeslie: [],
     joursHoraires: [],
@@ -4023,22 +4304,30 @@ function paieCalculerMois(mois, annee, horairesImportes) {
          → oui uniquement si manuellement coché OU déjà dans records
        - Jour normal prévu (records ou forfait_9h) : OUI par défaut si Paul présent
        - Férié travaillé : oui si Paul là
+       Champs séparés : repasMidi, repasGouter (chacun oui/non, prix distinct)
     */
-    let repas;
-    if (hor && hor.repas !== undefined) {
-      // Toujours respecter la valeur manuelle saisie par l'utilisateur
-      repas = hor.repas;
-    } else if (estFerieChome || dayOff || leslieConge || absent || avantContrat) {
-      repas = false;
-    } else if (estAdaptation) {
-      // Adaptation : NON par défaut (repas uniquement si coché manuellement)
-      repas = false;
+    let repasMidi, repasGouter;
+    if (hor && hor.repasMidi !== undefined) {
+      repasMidi = hor.repasMidi;
+    } else if (hor && hor.repas !== undefined) {
+      // Compatibilité ancien format : repas = déjeuner uniquement
+      repasMidi = hor.repas;
+    } else if (estFerieChome || dayOff || leslieConge || absent || avantContrat || estAdaptation) {
+      repasMidi = false;
     } else if (estFerieTravaille) {
-      repas = !leslieConge && !absent;
+      repasMidi = !leslieConge && !absent;
     } else {
-      // Jour normal : oui si Paul présent/présumé et durée déclarée > 0
-      repas = !estFerie && !dayOff && !leslieConge && !absent && durDeclaree > 0;
+      repasMidi = !estFerie && !dayOff && !leslieConge && !absent && durDeclaree > 0;
     }
+
+    if (hor && hor.repasGouter !== undefined) {
+      repasGouter = hor.repasGouter;
+    } else {
+      repasGouter = false; // NON par défaut — à cocher manuellement
+    }
+
+    // Legacy : repas = repasMidi (pour compatibilité)
+    const repas = repasMidi;
 
     // ---- Entretien ----
     // Dû si jour prévu non férié, même si Paul absent.
@@ -4061,6 +4350,7 @@ function paieCalculerMois(mois, annee, horairesImportes) {
     // ---- Construction ligne ----
     const ligne = {
       date: ds, dow, estFerie, estFerieChome, estFerieTravaille, estContrat, estAdaptation,
+      estJourPlanning, avantContrat, estFutur,
       dayOff, leslieConge, typeConge,
       arrival:   hor ? hor.arrival   : null,
       departure: hor ? hor.departure : null,
@@ -4068,6 +4358,7 @@ function paieCalculerMois(mois, annee, horairesImportes) {
       durDeclaree,
       sourceDuree,
       repas, entretien,
+      repasMidi, repasGouter,
       absent, motifPaul, certif,
       notes: hor ? (hor.notes || '') : '',
       alertes: ligneAlertes,
@@ -4131,6 +4422,8 @@ function paieCalculerMois(mois, annee, horairesImportes) {
       ligne.repasDu = true;
       r.joursRepas++;
     }
+    if (ligne.repasMidi)   r.nbRepasMidi++;
+    if (ligne.repasGouter) r.nbRepasGouter++;
 
     // ---- Legacy aliases ----
     r.nbEntretien = r.joursIndemnitesEntretien;
@@ -4159,59 +4452,175 @@ function paieCalculerMois(mois, annee, horairesImportes) {
     r.joursHoraires.push(ligne);
   }
 
-  // ---- Arrondi adaptation à l'heure supérieure ----
-  const adaptationArrondieMins = adaptationBrutMins > 0
-    ? Math.ceil(adaptationBrutMins / 60) * 60
-    : 0;
-  r.heuresAdaptationMins = adaptationArrondieMins;
-
-  // ---- Calcul heures déclarées total mois ----
-  if (moisSpecial) {
-    // Mois spécial : adaptation arrondie + jours normaux + fériés chômés payés (9 h chacun)
-    let joursNormauxMins = 0;
-    r.joursHoraires.forEach(l => {
-      if (!l.estAdaptation && l.durDeclaree > 0) {
-        // ferie_chome : durDeclaree = 540 si moisSpecial (déjà calculé dans la boucle)
-        joursNormauxMins += l.durDeclaree;
-      }
-    });
-    r.heuresDeclareesMins = adaptationArrondieMins + joursNormauxMins;
-    r.heuresNormalesDeclarees = Math.round(r.heuresDeclareesMins / 60 * 100) / 100;
-    r.salaireNetBase = Math.round(r.heuresNormalesDeclarees * PAIE_CONTRAT.tauxHoraireNet * 100) / 100;
-  } else {
-    r.heuresNormalesDeclarees = PAIE_CONTRAT.mensualisation; // 195
-    r.salaireNetBase = PAIE_CONTRAT.salaireMensuelNet;        // 1014
-  }
-
-  // Synchroniser les alias finaux (après la boucle, les nbRepas/nbEntretien ont été
-  // incrémentés dans la boucle via les aliases — on remet à jour depuis les compteurs primaires)
+  // ---- Synchronisation aliases après boucle ----
   r.nbEntretien = r.joursIndemnitesEntretien;
   r.nbRepas     = r.joursRepas;
 
-  // ---- Calcul heures majorées par semaine ----
-  // Pour mois spécial : sur les heures réelles des jours normaux
-  // Pour mois normal : sur les heures déclarées (réelles ou forfait)
-  Object.entries(semaineMap).forEach(([semKey, sem]) => {
-    const minsPourMajoration = moisSpecial ? sem.totalReellesMins : sem.totalDeclareesMins;
-    const limiteMinutes = PAIE_CONTRAT.heuresHebdo * 60; // 2700 min
-    if (minsPourMajoration > limiteMinutes) {
-      const depMin = minsPourMajoration - limiteMinutes;
-      r.heuresMajereesMins += depMin;
-      r.depassementParSemaine[semKey] = depMin;
-      r.alertes.push('⚠️ Dépassement 45 h semaine du ' + semKey + ' : +' + paieHMFromMins(depMin));
+  // ================================================================
+  // CALCUL SALAIRE ET HEURES PAJEMPLOI
+  // ================================================================
+  /*
+     LOGIQUE OFFICIELLE (validée sur bulletin mai 2026) :
+     -------------------------------------------------------
+     1. Base : salaire brut mensuel complet = 195 h × 6,66 € = 1 298,70 €
+     2. Retenue Cour de cassation :
+        retenue = (salaireBrut / joursOuvrésTotal) × (joursHorsContrat + heuresAbsencesDéduites / 9)
+     3. Salaire brut résultant = salaireBrut - retenue
+     4. Heures Pajemploi = round(salaireRésultant / tauxHoraireBrut)
+     5. Jours activité = ceil(5×52/12 × joursOuvrésActifs / joursOuvrésTotal)
+     6. Salaire net Pajemploi = heuresPaj × tauxHoraireNet
+     (Le net final est calculé par Pajemploi sur la base du brut déclaré)
+  */
+
+  // ---- Jours ouvrés du mois complet (lun-ven) ----
+  let joursOuvresMoisTotal = 0;
+  {
+    const nbJours = new Date(annee, mois, 0).getDate();
+    for (let d2 = 1; d2 <= nbJours; d2++) {
+      const dow2 = new Date(annee, mois - 1, d2).getDay();
+      if (dow2 >= 1 && dow2 <= 5) joursOuvresMoisTotal++;
+    }
+  }
+
+  // ---- Jours ouvrés hors contrat (avant debutContrat, lun-ven) ----
+  let joursHorsContratOuvres = 0;
+  {
+    const nbJours = new Date(annee, mois, 0).getDate();
+    for (let d2 = 1; d2 <= nbJours; d2++) {
+      const ds2 = `${annee}-${String(mois).padStart(2,'0')}-${String(d2).padStart(2,'0')}`;
+      const dow2 = new Date(ds2 + 'T12:00:00').getDay();
+      if (ds2 < PAIE_CONTRAT.debutContrat && dow2 >= 1 && dow2 <= 5) {
+        joursHorsContratOuvres++;
+      }
+    }
+  }
+
+  // ---- Jours ouvrés de la période active (du debut contrat à fin mois, lun-ven, INCLUANT fériés) ----
+  // Le 25 mai (Ascension) compte dans les jours actifs Pajemploi car il est dans la période contractuelle
+  let joursOuvresActifs = 0;
+  {
+    const nbJours = new Date(annee, mois, 0).getDate();
+    for (let d2 = 1; d2 <= nbJours; d2++) {
+      const ds2 = `${annee}-${String(mois).padStart(2,'0')}-${String(d2).padStart(2,'0')}`;
+      const dow2 = new Date(ds2 + 'T12:00:00').getDay();
+      if (ds2 >= PAIE_CONTRAT.debutContrat && dow2 >= 1 && dow2 <= 5) {
+        joursOuvresActifs++;
+      }
+    }
+  }
+
+  // ---- Heures d'absences déduites depuis les lignes ----
+  // Sources d'absences déduites selon le bulletin :
+  // 1. Période d'adaptation : heures contractuelles - heures réelles
+  // 2. Journées normales raccourcies (ex : 29/05 = 7h20 au lieu de 9h = 1h40 d'absence déduite)
+  //    → déduites automatiquement si durReelle < heuresJour × 60
+  // 3. Jours d'absence complète (absent=true, durReelle=null)
+  let heuresAbsencesDeduitesH = 0;
+  r.joursHoraires.forEach(l => {
+    if (l.avantContrat || l.estFerieChome || l.dayOff || l.leslieConge) return;
+    if (!l.estJourPlanning && !l.estContrat) return;
+
+    if (l.estAdaptation) {
+      // Adaptation : absence = heures contrat - heures réelles
+      const dureeReelleH = (l.durReelle || 0) / 60;
+      const absence = PAIE_CONTRAT.heuresJour - dureeReelleH;
+      if (absence > 0) heuresAbsencesDeduitesH += absence;
+    } else if (l.estContrat && !l.estFerie) {
+      if (!l.durReelle && !l.estFutur) {
+        // Jour d'absence complète (passé, sans horaires, non férié)
+        heuresAbsencesDeduitesH += PAIE_CONTRAT.heuresJour;
+      } else if (l.durReelle && l.durReelle < PAIE_CONTRAT.heuresJour * 60) {
+        // Journée raccourcie : déduire l'écart automatiquement
+        // (logique bulletin : toute heure non travaillée sur jour contractuel = absence déduite)
+        const dureeReelleH = l.durReelle / 60;
+        const absence = PAIE_CONTRAT.heuresJour - dureeReelleH;
+        if (absence > 0) heuresAbsencesDeduitesH += absence;
+      }
     }
   });
+
+  // Stocker pour audit
+  r.joursOuvresMoisTotal      = joursOuvresMoisTotal;
+  r.joursHorsContratOuvres    = joursHorsContratOuvres;
+  r.joursOuvresActifs         = joursOuvresActifs;
+  r.heuresAbsencesDeduitesH   = Math.round(heuresAbsencesDeduitesH * 1000) / 1000;
+
+  if (moisSpecial) {
+    /* ----------------------------------------------------------------
+       MOIS SPÉCIAL — Logique Cour de cassation (validée sur bulletin)
+    ---------------------------------------------------------------- */
+    const salaireBrut    = PAIE_CONTRAT.salaireBrutMensuel;  // 1298.70
+    const tauxJournalier = salaireBrut / joursOuvresMoisTotal;
+
+    // Absences en jours "Cour de cassation" = heures / heures_par_jour
+    const joursAbsencesDeduits = heuresAbsencesDeduitesH / PAIE_CONTRAT.heuresJour;
+
+    // Retenue = taux_journalier × (jours_hors_contrat + jours_absences)
+    const retenueBrut   = tauxJournalier * (joursHorsContratOuvres + joursAbsencesDeduits);
+    const salaireBrutResultant = Math.round((salaireBrut - retenueBrut) * 100) / 100;
+
+    // Heures Pajemploi = round(salaire_brut_résultant / taux_horaire_brut)
+    const heuresPajRaw  = salaireBrutResultant / PAIE_CONTRAT.tauxHoraireBrut;
+    const heuresPaj     = Math.round(heuresPajRaw);
+
+    // Salaire net Pajemploi = heures_paj × taux_net
+    const salaireNetPaj = Math.round(heuresPaj * PAIE_CONTRAT.tauxHoraireNet * 100) / 100;
+
+    // Stocker pour audit et affichage
+    r.tauxJournalierBrut        = Math.round(tauxJournalier * 100) / 100;
+    r.joursAbsencesDeduits      = Math.round(joursAbsencesDeduits * 10000) / 10000;
+    r.retenueBrut               = Math.round(retenueBrut * 100) / 100;
+    r.salaireBrutResultant      = salaireBrutResultant;
+    r.heuresNormalesPajRaw      = Math.round(heuresPajRaw * 100) / 100;
+    r.heuresNormalesDeclarees   = heuresPaj;          // valeur déclarée Pajemploi (entière)
+    r.salaireNetBase            = salaireNetPaj;
+    r.heuresNormalesMensual     = PAIE_CONTRAT.mensualisation; // 195 (référence)
+
+    // Jours activité Pajemploi — formule mensualisée proratisée
+    // = ceil(joursHebdo × 52/12 × joursOuvresActifs / joursOuvresMoisTotal)
+    const joursMensualises  = PAIE_CONTRAT.joursHebdo * 52 / 12;  // 5×52/12 = 21.6667
+    const joursActiviteRaw  = joursMensualises * joursOuvresActifs / joursOuvresMoisTotal;
+    r.joursActivitePajemploi = Math.ceil(joursActiviteRaw);
+
+    // Stocker pour audit
+    r.joursMensualises       = Math.round(joursMensualises * 10000) / 10000;
+    r.joursActiviteRaw       = Math.round(joursActiviteRaw * 10000) / 10000;
+
+    r.alertes.push(
+      `ℹ️ Mois partiel — Retenue Cour de cassation : ${r.retenueBrut} € — ` +
+      `Brut résultant : ${salaireBrutResultant} € → ` +
+      `${heuresPaj} h Pajemploi / ${r.joursActivitePajemploi} j activité`
+    );
+  } else {
+    /* ----------------------------------------------------------------
+       MOIS COMPLET — Forfait mensuel
+    ---------------------------------------------------------------- */
+    r.heuresNormalesDeclarees = PAIE_CONTRAT.mensualisation; // 195
+    r.salaireNetBase          = PAIE_CONTRAT.salaireMensuelNet; // 1014
+    r.salaireBrutResultant    = PAIE_CONTRAT.salaireBrutMensuel; // 1298.70
+    r.heuresNormalesMensual   = PAIE_CONTRAT.mensualisation;
+
+    // Jours activité mois complet = mensualisation standard
+    // ceil(5×52/12) = 22 (mais les mois complets sont déclarés en forfait)
+    const joursMensualises = PAIE_CONTRAT.joursHebdo * 52 / 12;
+    r.joursActivitePajemploi = Math.ceil(joursMensualises); // 22 par défaut
+    r.joursMensualises = Math.round(joursMensualises * 10000) / 10000;
+  }
+
+  // ---- Totaux indemnités ----
+  r.nbEntretien       = r.joursIndemnitesEntretien;
+  r.nbRepas           = r.joursRepas; // legacy
+  r.totalEntretien    = Math.round(r.nbEntretien      * PAIE_CONTRAT.indemEntretien  * 100) / 100;
+  r.totalRepasMidi    = Math.round(r.nbRepasMidi      * PAIE_CONTRAT.indemRepasMidi  * 100) / 100;
+  r.totalRepasGouter  = Math.round(r.nbRepasGouter    * PAIE_CONTRAT.indemRepasGouter * 100) / 100;
+  r.totalRepas        = Math.round((r.totalRepasMidi + r.totalRepasGouter) * 100) / 100;
 
   // ---- Supplément majorations ----
   const heuresMajH = r.heuresMajereesMins / 60;
   r.supplementMajoration = Math.round(heuresMajH * PAIE_CONTRAT.tauxHoraireNet * PAIE_CONTRAT.tauxMajoration * 100) / 100;
 
-  // ---- Salaire total net ----
-  r.salaireNetTotal = r.salaireNetBase + r.supplementMajoration;
-
-  // ---- Totaux indemnités ----
-  r.totalEntretien = Math.round(r.nbEntretien * PAIE_CONTRAT.indemEntretien * 100) / 100;
-  r.totalRepas     = Math.round(r.nbRepas     * PAIE_CONTRAT.indemRepas     * 100) / 100;
+  // ---- Salaire net total ----
+  r.salaireNetTotal = Math.round((r.salaireNetBase + r.supplementMajoration) * 100) / 100;
 
   // ---- Total net à verser ----
   r.totalNet = Math.round((r.salaireNetTotal + r.totalEntretien + r.totalRepas) * 100) / 100;
@@ -4222,12 +4631,7 @@ function paieCalculerMois(mois, annee, horairesImportes) {
   }
   if (r.alertesLeslie.length > 0) {
     r.alertes.push('⚠️ Présence d\'une absence/congé Leslie : vérifier le traitement Pajemploi avant déclaration.');
-    // Ajouter le détail dans les alertes
     r.alertesLeslie.forEach(a => r.alertes.push(a));
-  }
-  if (moisSpecial) {
-    const adaptH = Math.round(adaptationArrondieMins / 60 * 100) / 100;
-    r.alertes.push('ℹ️ Mois de début de contrat — Adaptation : ' + adaptH + ' h arrondies / Heures déclarées : ' + r.heuresNormalesDeclarees + ' h (≠ forfait 195 h)');
   }
 
   return r;
@@ -4262,7 +4666,8 @@ function paieRenderDeclaration() {
   const pjHeuresNorm = document.getElementById('pj-heures-norm');
   if (pjHeuresNorm) {
     if (paieHorairesImportes.length > 0 && calc.moisSpecial) {
-      pjHeuresNorm.textContent = calc.heuresNormalesDeclarees.toFixed(2).replace('.', ',') + ' h';
+      // Heures Pajemploi = entier (valeur déclarée)
+      pjHeuresNorm.textContent = calc.heuresNormalesDeclarees + ' h';
       pjHeuresNorm.className = 'pajemploi-row-value pv-euro';
     } else {
       pjHeuresNorm.textContent = '195';
@@ -4270,12 +4675,18 @@ function paieRenderDeclaration() {
     }
   }
 
-  // Mettre à jour le sous-titre de la ligne heures normales
+  // Mettre à jour le sous-titre heures normales
   const pjHeuresNormSmall = document.querySelector('#pj-heures-norm')?.closest('.pajemploi-row')?.querySelector('small');
   if (pjHeuresNormSmall) {
-    pjHeuresNormSmall.textContent = calc.moisSpecial
-      ? 'Mois partiel — adaptation + jours normaux (≠ forfait 195 h)'
-      : 'Forfait mensualisé contractuel (195 h)';
+    if (calc.moisSpecial && calc.retenueBrut !== undefined) {
+      pjHeuresNormSmall.textContent =
+        `Mois partiel — Cour de cassation : ` +
+        `${PAIE_CONTRAT.salaireBrutMensuel} € − ${paieFormatEuro(calc.retenueBrut)} retenue = ` +
+        `${paieFormatEuro(calc.salaireBrutResultant)} brut → ` +
+        `${calc.heuresNormalesDeclarees} h (${calc.heuresNormalesPajRaw} h brut arrondi)`;
+    } else {
+      pjHeuresNormSmall.textContent = 'Forfait mensualisé contractuel (195 h)';
+    }
   }
 
   // ---- Heures complémentaires (toujours 0 dans ce contrat) ----
@@ -4303,7 +4714,8 @@ function paieRenderDeclaration() {
   }
   if (pjSalSmall) {
     pjSalSmall.textContent = calc.moisSpecial
-      ? `Mois partiel : ${calc.heuresNormalesDeclarees.toFixed(2).replace('.',',')} h × ${PAIE_CONTRAT.tauxHoraireNet} €` + (calc.supplementMajoration > 0 ? ` + ${paieFormatEuro(calc.supplementMajoration)} maj.` : '')
+      ? `${calc.heuresNormalesDeclarees} h × ${PAIE_CONTRAT.tauxHoraireNet} €` +
+        (calc.supplementMajoration > 0 ? ` + ${paieFormatEuro(calc.supplementMajoration)} maj.` : '')
       : 'Forfait mensuel 1 014 €' + (calc.supplementMajoration > 0 ? ` + ${paieFormatEuro(calc.supplementMajoration)} majorations` : '');
   }
 
@@ -4325,7 +4737,11 @@ function paieRenderDeclaration() {
     pjRep.textContent = val;
     pjRep.className = 'pajemploi-row-value pv-euro' + (calc.totalRepas > 0 ? '' : ' pv-zero');
   }
-  if (pjRepD) pjRepD.textContent = calc.nbRepas + ' repas × 5,50 €';
+  if (pjRepD) {
+    const detailMidi   = calc.nbRepasMidi   > 0 ? `${calc.nbRepasMidi} dej × 3,50 €` : '';
+    const detailGouter = calc.nbRepasGouter > 0 ? `${calc.nbRepasGouter} goûter × 2,00 €` : '';
+    pjRepD.textContent = [detailMidi, detailGouter].filter(Boolean).join(' + ') || '— repas';
+  }
 
   // ---- Total net ----
   const pjTot = document.getElementById('pj-total-net');
@@ -4457,48 +4873,39 @@ async function paieImporterHoraires() {
 
   const lastDay = new Date(annee, mois, 0).getDate();
   const prefix  = `${annee}-${String(mois).padStart(2,'0')}-`;
-  const existantMap = {};
-  (paieHorairesImportes || []).forEach(l => { existantMap[l.date] = l; });
   paieHorairesImportes = [];
   const todayStr = fmt(new Date());
 
   for (let day = 1; day <= lastDay; day++) {
-    const ds = prefix + String(day).padStart(2,'0');
-    const r  = records[ds] || {};
+    const ds  = prefix + String(day).padStart(2,'0');
+    const r   = records[ds] || {};
     const durReelle = getDuration(r);
     const dayOff    = r.dayOff || false;
     const dow = new Date(ds + 'T12:00:00').getDay();
     const estFerie   = paieIsJourFerie(ds);
     const estContrat = dow >= 1 && dow <= 5 && !dayOff && ds >= PAIE_CONTRAT.debutContrat;
     const estFutur   = ds > todayStr;
-    const existant   = existantMap[ds] || {};
 
-    const absent      = existant.absent      !== undefined ? existant.absent      : false;
-    const motifPaul   = existant.motifPaul   !== undefined ? existant.motifPaul   : (existant.motif || '');
-    const certif      = existant.certif      !== undefined ? existant.certif      : false;
-    const leslieConge = existant.leslieConge !== undefined ? existant.leslieConge : false;
-    const typeConge   = existant.typeConge   !== undefined ? existant.typeConge   : '';
+    // Lire les champs Paie depuis records (source de vérité unique)
+    // Si la valeur n'est pas encore dans records (avant migration SQL ou jour jamais ouvert),
+    // calculer le défaut intelligent selon le type de jour
+    const defRepasMidi = estContrat && !estFerie && !dayOff && (!!durReelle || estFutur);
+    const defEntretien = estContrat && !estFerie && !dayOff;
 
-    let repas;
-    if (existant.repas !== undefined) {
-      repas = existant.repas;
-    } else {
-      const hasDuration = !!durReelle || (estContrat && !estFerie && estFutur);
-      repas = estContrat && !estFerie && !dayOff && !leslieConge && !absent && hasDuration;
-      if (estFerie && !!durReelle && !leslieConge && !absent) repas = true;
-    }
-
-    let entretien;
-    if (existant.entretien !== undefined) {
-      entretien = existant.entretien;
-    } else {
-      entretien = estContrat && !estFerie && !dayOff && !leslieConge;
-    }
+    const repasMidi   = r.repasMidi   !== undefined ? !!r.repasMidi   : defRepasMidi;
+    const repasGouter = r.repasGouter !== undefined ? !!r.repasGouter : false;
+    const entretien   = r.entretien   !== undefined ? !!r.entretien   : defEntretien;
+    const absent      = r.absent      !== undefined ? !!r.absent      : false;
+    const motifPaul   = r.motifPaul   || r.motif    || '';
+    const certif      = r.certif      !== undefined ? !!r.certif      : false;
+    const leslieConge = r.leslieConge !== undefined ? !!r.leslieConge : false;
+    const typeConge   = r.typeConge   || '';
 
     paieHorairesImportes.push({
       date: ds, arrival: r.arrival || null, departure: r.departure || null,
       durReelle, dur: durReelle, dayOff, notes: r.notes || '',
-      repas, entretien, absent, motifPaul, motif: motifPaul,
+      repasMidi, repas: repasMidi, // alias legacy
+      repasGouter, entretien, absent, motifPaul, motif: motifPaul,
       certif, leslieConge, typeConge,
     });
   }
@@ -4563,7 +4970,8 @@ function paieRenderDetail() {
       <th>Durée réelle</th>
       <th>Durée déclarée</th>
       <th>Source</th>
-      <th>Repas dû</th>
+      <th>Dej dû</th>
+      <th>Goûter dû</th>
       <th>Entretien dû</th>
       <th>Paul absent</th>
       <th>Motif Paul</th>
@@ -4607,12 +5015,13 @@ function paieRenderDetail() {
     const adaptBadge = ligne.estAdaptation ? ' 🔵' : '';
 
     // Toggle buttons
-    const repasOn     = ligne.repas;
-    const entretienOn = ligne.entretien;
-    const absentOn    = ligne.absent;
-    const leslieOn    = ligne.leslieConge;
-    const typeConge   = ligne.typeConge || '';
-    const motifPaul   = ligne.motifPaul || ligne.motif || '';
+    const repasMidiOn  = ligne.repasMidi   !== undefined ? ligne.repasMidi   : ligne.repas;
+    const repasGouterOn= ligne.repasGouter !== undefined ? ligne.repasGouter : false;
+    const entretienOn  = ligne.entretien;
+    const absentOn     = ligne.absent;
+    const leslieOn     = ligne.leslieConge;
+    const typeConge    = ligne.typeConge || '';
+    const motifPaul    = ligne.motifPaul || ligne.motif || '';
 
     html += `<tr class="${rowClass}"${alertTxt}>
       <td class="pt-bold">${jourNom} ${dayNum}${ferieBadge}${adaptBadge}${alertBadge}</td>
@@ -4620,7 +5029,10 @@ function paieRenderDetail() {
       <td class="${durDeclCls}">${durDeclTxt}</td>
       <td style="font-size:11px;${srcCls}">${srcLbl}</td>
       <td style="text-align:center">
-        <button class="pt-toggle ${repasOn ? 'on' : 'off'}" onclick="paieToggleChamp(${idx},'repas')">${repasOn ? '✅' : '❌'}</button>
+        <button class="pt-toggle ${repasMidiOn ? 'on' : 'off'}" onclick="paieToggleChamp(${idx},'repasMidi')">${repasMidiOn ? '✅' : '❌'}</button>
+      </td>
+      <td style="text-align:center">
+        <button class="pt-toggle ${repasGouterOn ? 'on' : 'off'}" onclick="paieToggleChamp(${idx},'repasGouter')">${repasGouterOn ? '🥤' : '❌'}</button>
       </td>
       <td style="text-align:center">
         <button class="pt-toggle ${entretienOn ? 'on' : 'off'}" onclick="paieToggleChamp(${idx},'entretien')">${entretienOn ? '✅' : '❌'}</button>
@@ -4659,13 +5071,18 @@ function paieRenderDetail() {
   html += '</tbody></table></div>';
   wrap.innerHTML = html;
 
-  // Légende
-  if (calc.moisSpecial) {
-    const leg = document.createElement('div');
+  // Légende — afficher une seule fois dans un conteneur dédié (pas insertAdjacentElement)
+  const legId = 'paie-detail-legende';
+  let leg = document.getElementById(legId);
+  if (!leg) {
+    leg = document.createElement('div');
+    leg.id = legId;
     leg.style.cssText = 'padding:8px 16px;font-size:11px;color:#555;line-height:1.8;';
-    leg.innerHTML = '🔵 Adaptation &nbsp;·&nbsp; 🟢 Férié chômé payé &nbsp;·&nbsp; 🟡 Férié travaillé &nbsp;·&nbsp; ⚠️ Anomalie';
-    wrap.insertAdjacentElement('beforebegin', leg);
+    wrap.parentNode.insertBefore(leg, wrap);
   }
+  leg.innerHTML = calc.moisSpecial
+    ? '🔵 Adaptation &nbsp;·&nbsp; 🟢 Férié chômé payé &nbsp;·&nbsp; 🟡 Férié travaillé &nbsp;·&nbsp; ⚠️ Anomalie'
+    : '🟢 Férié chômé payé &nbsp;·&nbsp; 🟡 Férié travaillé &nbsp;·&nbsp; ⚠️ Anomalie';
 
   // Totaux
   if (totBox) {
@@ -4690,22 +5107,36 @@ function paieRenderDetail() {
   }
 }
 
-// ---- Modification manuelle des champs du tableau ----
+// ---- Modification manuelle — sync records + Supabase ----
+function paieSyncRecord(ds, champs) {
+  // Mettre à jour records[ds] avec les champs modifiés
+  if (!records[ds]) records[ds] = {};
+  Object.assign(records[ds], champs);
+  saveLocal();
+  // Sauvegarder dans Supabase immédiatement
+  upsertRecord(ds);
+}
+
 function paieToggleChamp(idx, champ) {
   if (!paieHorairesImportes[idx]) return;
-  paieHorairesImportes[idx][champ] = !paieHorairesImportes[idx][champ];
-  if (champ === 'absent' && !paieHorairesImportes[idx].absent) {
-    paieHorairesImportes[idx].motifPaul = '';
-    paieHorairesImportes[idx].motif     = '';
-    paieHorairesImportes[idx].certif    = false;
+  const ligne = paieHorairesImportes[idx];
+  ligne[champ] = !ligne[champ];
+  if (champ === 'absent' && !ligne.absent) {
+    ligne.motifPaul = ''; ligne.motif = ''; ligne.certif = false;
   }
-  if (champ === 'leslieConge' && !paieHorairesImportes[idx].leslieConge) {
-    paieHorairesImportes[idx].typeConge = '';
+  if (champ === 'leslieConge' && !ligne.leslieConge) ligne.typeConge = '';
+  if (champ === 'leslieConge' && ligne.leslieConge) {
+    ligne.repasMidi = false; ligne.repasGouter = false; ligne.entretien = false;
   }
-  if (champ === 'leslieConge' && paieHorairesImportes[idx].leslieConge) {
-    paieHorairesImportes[idx].repas     = false;
-    paieHorairesImportes[idx].entretien = false;
-  }
+  // Sync records
+  const syncData = {};
+  if (champ === 'repasMidi')   syncData.repasMidi   = ligne.repasMidi;
+  if (champ === 'repasGouter') syncData.repasGouter = ligne.repasGouter;
+  if (champ === 'repas')       syncData.repasMidi   = ligne.repas;
+  if (champ === 'entretien')   syncData.entretien   = ligne.entretien;
+  if (champ === 'absent')      { syncData.absent = ligne.absent; syncData.motifPaul = ligne.motifPaul; syncData.certif = ligne.certif; }
+  if (champ === 'leslieConge') { syncData.leslieConge = ligne.leslieConge; syncData.typeConge = ligne.typeConge; }
+  paieSyncRecord(ligne.date, syncData);
   paieRenderDetail();
   paieRenderDeclaration();
   paieAutoSave();
@@ -4713,30 +5144,28 @@ function paieToggleChamp(idx, champ) {
 
 function paieSetMotifPaul(idx, val) {
   if (!paieHorairesImportes[idx]) return;
-  paieHorairesImportes[idx].motifPaul = val;
-  paieHorairesImportes[idx].motif     = val;
-  if (val !== 'maladie') paieHorairesImportes[idx].certif = false;
-  paieRenderDetail();
-  paieRenderDeclaration();
-  paieAutoSave();
+  const ligne = paieHorairesImportes[idx];
+  ligne.motifPaul = val; ligne.motif = val;
+  if (val !== 'maladie') ligne.certif = false;
+  paieSyncRecord(ligne.date, { motifPaul: val, motif: val, certif: ligne.certif });
+  paieRenderDetail(); paieRenderDeclaration(); paieAutoSave();
 }
-
 function paieSetMotif(idx, val) { paieSetMotifPaul(idx, val); }
 
 function paieSetTypeConge(idx, val) {
   if (!paieHorairesImportes[idx]) return;
-  paieHorairesImportes[idx].typeConge = val;
-  paieRenderDetail();
-  paieRenderDeclaration();
-  paieAutoSave();
+  const ligne = paieHorairesImportes[idx];
+  ligne.typeConge = val;
+  paieSyncRecord(ligne.date, { typeConge: val });
+  paieRenderDetail(); paieRenderDeclaration(); paieAutoSave();
 }
 
 function paieSetCertif(idx, val) {
   if (!paieHorairesImportes[idx]) return;
-  paieHorairesImportes[idx].certif = val;
-  paieRenderDetail();
-  paieRenderDeclaration();
-  paieAutoSave();
+  const ligne = paieHorairesImportes[idx];
+  ligne.certif = val;
+  paieSyncRecord(ligne.date, { certif: val });
+  paieRenderDetail(); paieRenderDeclaration(); paieAutoSave();
 }
 
 // ---- Rafraîchir depuis Supabase ----
@@ -5801,7 +6230,14 @@ function cpCalculCongesPayes() {
 
   const debutContrat  = CP_CONFIG.debutContrat;
   const debutEffectif = debutContrat > periode.debut ? debutContrat : periode.debut;
-  const finEffective  = today <= periode.fin ? today : periode.fin;
+
+  // finEffective = fin du mois en cours (ou fin de la période si on est au-delà)
+  // Logique : on calcule les droits acquis sur le mois complet, comme Nounou-Top.
+  // Si on est en cours de mois, on projette jusqu'à la fin du mois.
+  const todayDate = new Date(today + 'T12:00:00');
+  const finMoisEnCours = new Date(todayDate.getFullYear(), todayDate.getMonth() + 1, 0);
+  const finMoisStr = fmt(finMoisEnCours);
+  const finEffective = finMoisStr < periode.fin ? finMoisStr : periode.fin;
   const premierePeriode = debutContrat > periode.debut;
 
   const moisAssimiles  = cpCalculerMoisAssimiles(debutEffectif, finEffective);
