@@ -412,7 +412,7 @@ if ('serviceWorker' in navigator) {
   }
   .div-food-item:active { transform: scale(0.98); }
   .div-food-main {
-    display: flex; align-items: center; gap: 12px; padding: 13px 16px; cursor: pointer;
+    display: flex; align-items: center; gap: 9px; padding: 11px 14px; cursor: pointer;
   }
   .div-food-check {
     width: 22px; height: 22px; border-radius: 50%; border: 2px solid #ddd;
@@ -422,7 +422,7 @@ if ('serviceWorker' in navigator) {
   }
   .div-food-check.checked { background: #5A9E6F; border-color: #5A9E6F; }
   .div-food-check.checked::after { content: '✓'; }
-  .div-food-name { flex: 1; font-size: 15px; font-weight: 500; }
+  .div-food-name { flex: 1; font-size: 15px; font-weight: 500; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
   .div-food-name.eaten { color: #5A9E6F; }
   .div-food-expand { font-size: 16px; color: #bbb; padding: 0 4px; }
   .div-food-detail {
@@ -448,6 +448,104 @@ if ('serviceWorker' in navigator) {
   .div-btn-pdf { background: #5A9E6F; color: #fff; }
   .div-btn-email { background: var(--blue-bg); color: var(--blue); border: 0.5px solid var(--blue-mid); }
   .div-empty { text-align: center; padding: 40px 20px; color: #aaa; font-size: 14px; }
+
+  /* Suggestions de saison */
+  .div-suggest { margin: 0 16px 14px; }
+  .div-suggest-inner {
+    background: linear-gradient(135deg, #F0F7F2, #FAF6EC);
+    border: 0.5px solid rgba(0,0,0,.07); border-radius: 14px; padding: 14px 16px;
+  }
+  .div-suggest-title { font-size: 12px; font-weight: 700; color: #5A9E6F; text-transform: uppercase; letter-spacing: .5px; margin-bottom: 8px; }
+  .div-suggest-chips { display: flex; flex-wrap: wrap; gap: 6px; }
+  .div-suggest-chip {
+    background: #fff; border: 0.5px solid rgba(0,0,0,.1); border-radius: 20px;
+    padding: 6px 12px; font-size: 13px; cursor: pointer; font-family: var(--font);
+  }
+  .div-suggest-chip:active { transform: scale(.95); }
+
+  /* Bascule vue */
+  .div-viewtoggle { display: flex; gap: 6px; margin: 0 16px 14px; background: rgba(0,0,0,.05); padding: 4px; border-radius: 12px; }
+  .div-vt-btn {
+    flex: 1; padding: 9px; border-radius: 9px; border: none; background: transparent;
+    font-size: 13px; font-weight: 600; font-family: var(--font); color: #888; cursor: pointer;
+    transition: background .15s, color .15s;
+  }
+  .div-vt-btn.active { background: #fff; color: #1a1a1a; box-shadow: 0 1px 3px rgba(0,0,0,.08); }
+
+  /* Recherche */
+  .div-searchbar {
+    display: flex; align-items: center; gap: 8px; margin: 0 16px 10px;
+    background: rgba(0,0,0,.04); border-radius: 12px; padding: 10px 14px;
+  }
+  .div-search-icon { font-size: 14px; opacity: .5; }
+  .div-searchbar input {
+    flex: 1; border: none; background: transparent; font-size: 15px;
+    font-family: var(--font); outline: none; color: #1a1a1a;
+    -webkit-appearance: none;
+  }
+  .div-searchbar input::-webkit-search-cancel-button { display: none; }
+  .div-search-clear { font-size: 13px; color: #aaa; cursor: pointer; display: none; padding: 0 2px; }
+  .div-search-clear.show { display: block; }
+
+  /* Filtres rapides */
+  .div-quickfilters { display: flex; gap: 6px; padding: 0 16px 12px; overflow-x: auto; scrollbar-width: none; }
+  .div-quickfilters::-webkit-scrollbar { display: none; }
+  .div-qf {
+    flex-shrink: 0; padding: 7px 14px; border-radius: 20px; font-size: 12.5px; font-weight: 600;
+    font-family: var(--font); cursor: pointer; white-space: nowrap;
+    background: #fff; border: 0.5px solid rgba(0,0,0,.12); color: #666;
+    transition: background .15s, color .15s;
+  }
+  .div-qf.active { background: #185FA5; color: #fff; border-color: #185FA5; }
+
+  /* Badges aliment */
+  .div-food-badges { display: flex; gap: 4px; align-items: center; flex-shrink: 1; min-width: 0; overflow: hidden; }
+  .div-badge {
+    font-size: 9.5px; font-weight: 700; padding: 2px 6px; border-radius: 6px;
+    letter-spacing: .2px; white-space: nowrap;
+  }
+  .div-badge-saison { background: #E4F3E9; color: #3E7A52; }
+  .div-badge-allerg { background: #FDECEC; color: #B94A4A; }
+  .div-food-reaction { font-size: 15px; margin-left: 2px; }
+
+  /* Réactions */
+  .div-react-inline { display: none; gap: 3px; align-items: center; flex-shrink: 0; }
+  .div-react-inline.show { display: flex; }
+  .div-react-mini {
+    width: 30px; height: 30px; border-radius: 8px; font-size: 16px;
+    background: transparent; border: 1.5px solid transparent; cursor: pointer;
+    opacity: .3; transition: opacity .15s, background .15s, border-color .15s;
+    display: flex; align-items: center; justify-content: center; padding: 0;
+    line-height: 1;
+  }
+  .div-react-mini:active { transform: scale(.9); }
+  .div-react-mini.sel-love    { opacity: 1; background: #EDF7F1; border-color: #5A9E6F; }
+  .div-react-mini.sel-neutral { opacity: 1; background: #FDFAEC; border-color: #C4A32A; }
+  .div-react-mini.sel-refused { opacity: 1; background: #FDF0F0; border-color: #D95F5F; }
+
+  .div-react-row { display: flex; gap: 8px; margin-top: 6px; }
+  .div-react-btn {
+    flex: 1; padding: 9px; border-radius: 10px; font-size: 18px;
+    background: #fff; border: 1.5px solid rgba(0,0,0,.1); cursor: pointer;
+    transition: border-color .15s, background .15s;
+  }
+  .div-react-btn.sel-love    { border-color: #5A9E6F; background: #EDF7F1; }
+  .div-react-btn.sel-neutral { border-color: #C4A32A; background: #FDFAEC; }
+  .div-react-btn.sel-refused { border-color: #D95F5F; background: #FDF0F0; }
+
+  /* Frise chronologique */
+  .div-timeline { padding: 0 16px; }
+  .div-tl-day { display: flex; gap: 14px; margin-bottom: 4px; }
+  .div-tl-rail { display: flex; flex-direction: column; align-items: center; width: 14px; flex-shrink: 0; }
+  .div-tl-dot { width: 11px; height: 11px; border-radius: 50%; background: #5A9E6F; margin-top: 5px; flex-shrink: 0; }
+  .div-tl-line { width: 2px; flex: 1; background: rgba(0,0,0,.09); min-height: 10px; }
+  .div-tl-content { flex: 1; padding-bottom: 18px; }
+  .div-tl-date { font-size: 12px; font-weight: 700; color: #888; text-transform: capitalize; margin-bottom: 6px; }
+  .div-tl-foods { display: flex; flex-wrap: wrap; gap: 6px; }
+  .div-tl-chip {
+    font-size: 13px; padding: 6px 11px; border-radius: 10px;
+    border: 0.5px solid rgba(0,0,0,.07); display: flex; align-items: center; gap: 5px;
+  }
 
   /* Accordéon catégorie */
   .div-cat-group { margin-bottom: 10px; border-radius: 14px; overflow: hidden; border: 0.5px solid rgba(0,0,0,0.07); }
@@ -600,12 +698,43 @@ if ('serviceWorker' in navigator) {
     <div class="div-counter-label">aliments goûtés sur <span id="div-count-total">0</span></div>
     <div class="div-global-bar"><div class="div-global-bar-fill" id="div-global-fill" style="width:0%"></div></div>
   </div>
-  <div class="div-cat-cards" id="div-cat-cards"></div>
-  <div class="div-filter-label" id="div-filter-label">Tous les aliments</div>
-  <div class="div-food-list" id="div-food-list"></div>
-  <div class="div-action-row">
-    <button class="div-action-btn div-btn-pdf" onclick="exportFoodPDF()">📄 Récap nounou</button>
+
+  <!-- Suggestions de saison -->
+  <div class="div-suggest" id="div-suggest"></div>
+
+  <!-- Bascule Liste / Frise -->
+  <div class="div-viewtoggle">
+    <button class="div-vt-btn active" id="vt-liste" onclick="setDivView('liste')">📋 Liste</button>
+    <button class="div-vt-btn" id="vt-frise" onclick="setDivView('frise')">📅 Frise</button>
   </div>
+
+  <div id="div-view-liste">
+    <!-- Recherche -->
+    <div class="div-searchbar">
+      <span class="div-search-icon">🔍</span>
+      <input type="search" id="div-search" placeholder="Rechercher un aliment…" oninput="onDivSearch(this.value)">
+      <span class="div-search-clear" id="div-search-clear" onclick="clearDivSearch()">✕</span>
+    </div>
+
+    <!-- Filtres rapides -->
+    <div class="div-quickfilters">
+      <button class="div-qf active" id="qf-tous" onclick="setDivStatusFilter('tous')">Tous</button>
+      <button class="div-qf" id="qf-restants" onclick="setDivStatusFilter('restants')">Pas encore goûtés</button>
+      <button class="div-qf" id="qf-saison" onclick="setDivStatusFilter('saison')">🌿 De saison</button>
+    </div>
+
+    <div class="div-cat-cards" id="div-cat-cards"></div>
+    <div class="div-filter-label" id="div-filter-label">Tous les aliments</div>
+    <div class="div-food-list" id="div-food-list"></div>
+    <div class="div-action-row">
+      <button class="div-action-btn div-btn-pdf" onclick="exportFoodPDF()">📄 Récap nounou</button>
+    </div>
+  </div>
+
+  <div id="div-view-frise" style="display:none">
+    <div class="div-timeline" id="div-timeline"></div>
+  </div>
+
   <div style="height:20px"></div>
 </div>
 
@@ -681,6 +810,10 @@ FOR ALL USING (true) WITH CHECK (true);
 DROP POLICY IF EXISTS "acces_libre_paul_foods" ON paul_foods;
 CREATE POLICY "acces_libre_paul_foods" ON paul_foods
 FOR ALL USING (true) WITH CHECK (true);
+
+-- Réaction de l'enfant : 'love' | 'neutral' | 'refused'
+ALTER TABLE paul_foods
+  ADD COLUMN IF NOT EXISTS reaction TEXT;
 
 -- Table configuration générale (PIN, etc.)
 CREATE TABLE IF NOT EXISTS app_config (
@@ -1352,6 +1485,18 @@ function runRegressionTests() {
   assert('loadPaulFoodsLocal ne plante pas', (() => { try { loadPaulFoodsLocal(); return true; } catch(e){ return false; } })());
   assert('exportFoodPDF est une fonction', typeof exportFoodPDF === 'function');
   assert('toggleFood est une fonction', typeof toggleFood === 'function');
+  assert('SEASONS non vide', Object.keys(SEASONS).length > 50);
+  assert('ALLERGENS non vide', Object.keys(ALLERGENS).length > 10);
+  assert('isInSeason gère les plages simples', isInSeason('courgette', 7) === true && isInSeason('courgette', 1) === false);
+  assert('isInSeason gère le passage d\'année', isInSeason('clémentine', 12) === true && isInSeason('clémentine', 6) === false);
+  assert('isInSeason gère "toute l\'année"', isInSeason('carotte', 3) === true && isInSeason('carotte', 9) === true);
+  assert('isInSeason gère les plages multiples', isInSeason('mangue', 5) === true && isInSeason('mangue', 12) === true && isInSeason('mangue', 9) === false);
+  assert('seasonalSuggestions ne plante pas', Array.isArray(seasonalSuggestions(4)));
+  assert('REACTIONS a 3 états', Object.keys(REACTIONS).length === 3);
+  assert('setReaction est une fonction', typeof setReaction === 'function');
+  assert('renderTimeline est une fonction', typeof renderTimeline === 'function');
+  assert('Recherche et filtres présents', typeof onDivSearch === 'function' && typeof setDivStatusFilter === 'function');
+  assert('Bascule de vue présente', typeof setDivView === 'function');
   assert('upsertRecord toujours présent', typeof upsertRecord === 'function');
   assert('loadAll toujours présent', typeof loadAll === 'function');
   assert('getStatus inchangé', typeof getStatus === 'function');
@@ -1538,9 +1683,84 @@ const CAT_META = {
   'Divers':          { emoji: '🍫', color: 'var(--div-misc)',     bg: 'var(--div-misc-bg)',    fill: 'var(--div-misc)' },
 };
 
-// paulFoods: map foodKey (category+name) -> { already_eaten, first_try_date, notes, food_id }
+/* Saisons : tableau de plages [moisDébut, moisFin] (1-12), 'all' = toute l'année.
+   Les plages qui passent l'hiver (ex. novembre→janvier) sont gérées automatiquement. */
+const SEASONS = {
+  // Légumes
+  'artichaut':[[3,9]], 'asperge':[[4,6]], 'aubergine':[[6,9]], 'avocat':[[10,4]],
+  'blette':[[6,11]], 'betterave':[[10,3]], 'brocoli':[[6,11]], 'carotte':'all',
+  'céleri-branche':[[7,1]], 'céleri-rave':[[10,3]], 'champignon':'all',
+  'chou blanc':[[10,4]], 'chou de Bruxelles':[[9,3]], 'chou rouge':[[10,4]],
+  'chou vert':[[10,4]], 'chou-fleur':[[9,4]], 'chou-rave':[[3,11]],
+  'citrouille':[[9,12]], 'concombre':[[4,10]], 'courgette':[[5,9]], 'endive':[[10,4]],
+  'épinards':[[9,6]], 'fenouil':[[5,12]], 'haricots verts':[[7,9]], 'navet':[[10,5]],
+  'oignon':[[9,4]], 'panais':[[10,2]], 'patate douce':'all', 'pâtisson':[[7,11]],
+  'petits pois':[[5,6]], 'poireau':[[9,4]], 'poivron':[[6,9]], 'potimarron':[[9,12]],
+  'potiron':[[10,1]], 'radis':[[3,6]], 'rutabaga':[[10,4]], 'salade':'all',
+  'salsifis':[[10,3]], 'tomate':[[5,9]], 'topinambour':[[11,4]],
+  // Fruits
+  'abricot':[[6,8]], 'amande':[[9,10]], 'ananas':[[10,4]], 'banane':'all',
+  'cassis':[[8,9]], 'cerise':[[6,6]], 'châtaigne':[[10,10]], 'citron':[[2,9],[11,12]],
+  'clémentine':[[11,1]], 'coing':[[10,10]], 'datte':[[10,12]], 'figue':[[7,10]],
+  'fraise':[[4,6]], 'framboise':[[7,9]], 'fruit de la passion':'all', 'grenade':[[11,2]],
+  'groseille':[[6,9]], 'kaki':[[10,1]], 'kiwi':[[11,5]], 'litchi':[[11,1]],
+  'mandarine':[[11,1]], 'mangue':[[4,7],[12,12]], 'melon':[[6,9]], 'mirabelle':[[8,9]],
+  'mûre':[[7,10]], 'myrtille':[[6,9]], 'nectarine':[[6,8]], 'noisette':[[9,11]],
+  'noix':[[10,11]], 'orange':[[12,4]], 'pamplemousse':[[12,3]], 'papaye':[[10,12]],
+  'pastèque':[[6,8]], 'pêche':[[6,8]], 'poire':'all', 'pomme':[[9,5]],
+  'prune':[[7,10]], 'pruneau':'all', 'quetsche':[[8,10]], 'raisin':[[7,10]],
+  'rhubarbe':[[4,7]],
+};
+
+/* Allergènes majeurs — badge informatif : ce sont ceux dont la date
+   du premier essai est utile à retenir. */
+const ALLERGENS = {
+  'œuf entier':'Œuf',
+  'amande':'Fruit à coque', 'noisette':'Fruit à coque', 'noix':'Fruit à coque',
+  'châtaigne':'Fruit à coque',
+  'blé (farine)':'Gluten', 'pain':'Gluten', 'pâtes':'Gluten',
+  'semoule / boulgour':'Gluten', 'avoine':'Gluten', 'farine infantile':'Gluten',
+  'céleri-branche':'Céleri', 'céleri-rave':'Céleri',
+  'cabillaud':'Poisson', 'sole':'Poisson', 'merlan':'Poisson', 'colin':'Poisson',
+  'lieu':'Poisson', 'dorade':'Poisson', 'saumon':'Poisson', 'truite':'Poisson',
+  'sardine':'Poisson', 'maquereau':'Poisson', 'thon':'Poisson',
+  'crevettes':'Crustacé', 'moules':'Mollusque', 'calamars':'Mollusque', 'poulpe':'Mollusque',
+  'yaourt':'Lait', 'fromage pasteurisé':'Lait', 'fromage au lait cru':'Lait',
+  'fèves':'Légumineuse', 'lentilles corail':'Légumineuse', 'lentilles vertes':'Légumineuse',
+  'pois chiches':'Légumineuse', 'haricots blancs':'Légumineuse', 'haricots rouges':'Légumineuse',
+  'sarrasin':'Sarrasin',
+};
+
+const REACTIONS = {
+  love:    { emoji:'😋', label:'Aimé',   cls:'sel-love' },
+  neutral: { emoji:'😐', label:'Neutre', cls:'sel-neutral' },
+  refused: { emoji:'😖', label:'Refusé', cls:'sel-refused' },
+};
+
+/* Un aliment est-il de saison ce mois-ci ? */
+function isInSeason(name, month) {
+  const s = SEASONS[name];
+  if (!s) return false;
+  if (s === 'all') return true;
+  const m = month || (new Date().getMonth() + 1);
+  return s.some(([a, b]) => a <= b ? (m >= a && m <= b) : (m >= a || m <= b));
+}
+
+/* Aliments de saison pas encore goûtés, hors 'toute l'année' (moins pertinent) */
+function seasonalSuggestions(limit) {
+  const m = new Date().getMonth() + 1;
+  return FOOD_SEED.filter(f =>
+    SEASONS[f.name] && SEASONS[f.name] !== 'all' &&
+    isInSeason(f.name, m) &&
+    !paulFoods[foodKey(f.category, f.name)]?.already_eaten
+  ).slice(0, limit || 4);
+}
 let paulFoods = {};
 let divFilterCat = null; // null = all
+let divOpenCats = new Set(); // catégories dépliées (persiste entre les re-renders)
+let divSearch = '';            // texte de recherche
+let divStatusFilter = 'tous';  // 'tous' | 'restants' | 'saison'
+let divView = 'liste';         // 'liste' | 'frise'
 const PAUL_FOODS_KEY = 'mam_paul_foods_v1';
 
 function foodKey(category, name) { return category + '||' + name; }
@@ -1576,7 +1796,7 @@ async function seedFoodsIfNeeded() {
 
 async function loadPaulFoodsFromSupabase() {
   try {
-    const data = await sbRequest('/rest/v1/paul_foods?select=food_id,already_eaten,first_try_date,notes,foods(category,name)');
+    const data = await sbRequest('/rest/v1/paul_foods?select=food_id,already_eaten,first_try_date,notes,reaction,foods(category,name)');
     (data || []).forEach(row => {
       if (!row.foods) return;
       const k = foodKey(row.foods.category, row.foods.name);
@@ -1584,7 +1804,8 @@ async function loadPaulFoodsFromSupabase() {
         food_id: row.food_id,
         already_eaten: !!row.already_eaten,
         first_try_date: row.first_try_date || '',
-        notes: row.notes || ''
+        notes: row.notes || '',
+        reaction: row.reaction || null
       };
     });
     savePaulFoodsLocal();
@@ -1614,6 +1835,7 @@ async function upsertPaulFood(category, name) {
         already_eaten: !!pf.already_eaten,
         first_try_date: pf.first_try_date || null,
         notes: pf.notes || null,
+        reaction: pf.reaction || null,
         updated_at: new Date().toISOString()
       })
     });
@@ -1633,6 +1855,8 @@ function renderDiversification() {
   document.getElementById('div-count-total').textContent = total;
   document.getElementById('div-global-fill').style.width = pct + '%';
 
+  renderSuggestions();
+
   // Category cards
   const cats = [...new Set(FOOD_SEED.map(f => f.category))];
   const cardsEl = document.getElementById('div-cat-cards');
@@ -1641,6 +1865,7 @@ function renderDiversification() {
   // "Tous" pill
   const allCard = document.createElement('div');
   allCard.className = 'div-cat-card' + (divFilterCat === null ? ' active' : '');
+  allCard.id = 'dcc-all';
   allCard.style.cssText = 'background:#f5f5f3;color:#444;';
   allCard.innerHTML = `<div class="dcc-emoji">✨</div><div class="dcc-name">Tous</div><div class="dcc-prog">${eaten}/${total}</div>`;
   allCard.onclick = () => { divFilterCat = null; renderDiversification(); };
@@ -1653,6 +1878,7 @@ function renderDiversification() {
     const catPct = catFoods.length ? Math.round(catEaten / catFoods.length * 100) : 0;
     const card = document.createElement('div');
     card.className = 'div-cat-card' + (divFilterCat === cat ? ' active' : '');
+    card.id = 'dcc-grp-' + cat.replace(/[^a-z0-9]/gi,'_');
     card.style.cssText = `background:${meta.bg};color:${meta.color};`;
     card.innerHTML = `<div class="dcc-emoji">${meta.emoji}</div><div class="dcc-name">${cat}</div><div class="dcc-prog">${catEaten}/${catFoods.length}</div><div class="div-mini-bar"><div class="div-mini-bar-fill" style="width:${catPct}%;background:${meta.fill}"></div></div>`;
     card.onclick = () => { divFilterCat = divFilterCat === cat ? null : cat; renderDiversification(); };
@@ -1661,15 +1887,28 @@ function renderDiversification() {
 
   // Filter label
   const filterLabel = document.getElementById('div-filter-label');
-  filterLabel.textContent = divFilterCat ? `${CAT_META[divFilterCat]?.emoji || ''} ${divFilterCat}` : 'Tous les aliments';
+  const fLabels = { tous:'Tous les aliments', restants:'Pas encore goûtés', saison:'🌿 De saison ce mois-ci' };
+  filterLabel.textContent = divFilterCat
+    ? `${CAT_META[divFilterCat]?.emoji || ''} ${divFilterCat}`
+    : fLabels[divStatusFilter];
 
   // Food list
   const listEl = document.getElementById('div-food-list');
   listEl.innerHTML = '';
-  const filtered = divFilterCat ? FOOD_SEED.filter(f => f.category === divFilterCat) : FOOD_SEED;
+
+  const q = divSearch.trim().toLowerCase();
+  const norm = s => s.normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase();
+  const filtered = FOOD_SEED.filter(f => {
+    if (divFilterCat && f.category !== divFilterCat) return false;
+    if (q && !norm(f.name).includes(norm(q))) return false;
+    const eatenF = !!paulFoods[foodKey(f.category, f.name)]?.already_eaten;
+    if (divStatusFilter === 'restants' && eatenF) return false;
+    if (divStatusFilter === 'saison' && (!isInSeason(f.name) || SEASONS[f.name] === 'all')) return false;
+    return true;
+  });
 
   if (filtered.length === 0) {
-    listEl.innerHTML = '<div class="div-empty">Aucun aliment</div>';
+    listEl.innerHTML = `<div class="div-empty">${q ? 'Aucun aliment ne correspond à « '+divSearch+' »' : 'Aucun aliment'}</div>`;
     return;
   }
 
@@ -1680,13 +1919,17 @@ function renderDiversification() {
     groups[f.category].push(f);
   });
 
+  // Une recherche ou un filtre actif ouvre tout automatiquement
+  const forceOpen = !!q || divStatusFilter !== 'tous' || !!divFilterCat;
+
   Object.entries(groups).forEach(([cat, foods]) => {
     const meta = CAT_META[cat] || { emoji: '🍽️', color: '#888', bg: '#f5f5f3', fill: '#888' };
     const catEaten = foods.filter(f => paulFoods[foodKey(f.category, f.name)]?.already_eaten).length;
     const groupId = 'grp-' + cat.replace(/[^a-z0-9]/gi,'_');
 
-    // Si catégorie filtrée ou si c'est la seule, ouverte par défaut
-    const isOpen = !!divFilterCat || Object.keys(groups).length === 1;
+    // État déplié persistant
+    const isOpen = divOpenCats.has(cat) || forceOpen;
+    if (isOpen) divOpenCats.add(cat);
 
     const group = document.createElement('div');
     group.className = 'div-cat-group';
@@ -1697,7 +1940,7 @@ function renderDiversification() {
     header.innerHTML = `
       <div class="div-cat-group-title">${meta.emoji} ${cat}</div>
       <div class="div-cat-group-right">
-        <span class="div-cat-group-badge">${catEaten}/${foods.length}</span>
+        <span class="div-cat-group-badge" id="gb-${groupId}">${catEaten}/${foods.length}</span>
         <span class="div-cat-group-arrow ${isOpen ? 'open' : ''}">▼</span>
       </div>`;
     header.onclick = () => {
@@ -1705,6 +1948,7 @@ function renderDiversification() {
       const arrow = header.querySelector('.div-cat-group-arrow');
       const nowOpen = body.classList.toggle('open');
       arrow.classList.toggle('open', nowOpen);
+      if (nowOpen) divOpenCats.add(cat); else divOpenCats.delete(cat);
     };
 
     const body = document.createElement('div');
@@ -1712,23 +1956,42 @@ function renderDiversification() {
     body.id = groupId;
 
     foods.forEach(f => {
+      const idx = FOOD_SEED.indexOf(f);
       const k = foodKey(f.category, f.name);
       const pf = paulFoods[k] || {};
       const item = document.createElement('div');
       item.className = 'div-food-item';
+      item.id = 'fi-' + idx;
       if (pf.already_eaten) item.style.background = meta.bg;
+
+      // Badges
+      let badges = '';
+      if (SEASONS[f.name] && SEASONS[f.name] !== 'all' && isInSeason(f.name))
+        badges += '<span class="div-badge div-badge-saison">🌿 saison</span>';
+      if (ALLERGENS[f.name])
+        badges += `<span class="div-badge div-badge-allerg">${ALLERGENS[f.name]}</span>`;
+
+      const reactMini = (key) => {
+        const r = REACTIONS[key];
+        const sel = pf.reaction === key ? ' ' + r.cls : '';
+        return `<button class="div-react-mini${sel}" id="rb-${idx}-${key}" title="${r.label}" onclick="setReaction(${idx},'${key}',event)">${r.emoji}</button>`;
+      };
 
       item.innerHTML = `
         <div class="div-food-main">
-          <div class="div-food-check ${pf.already_eaten ? 'checked' : ''}" onclick="toggleFood('${f.category.replace(/'/g,"\\'")}','${f.name.replace(/'/g,"\\'")}',event)"></div>
-          <div class="div-food-name ${pf.already_eaten ? 'eaten' : ''}">${f.name}</div>
-          <div class="div-food-expand" onclick="toggleFoodDetail('${k.replace(/[^a-z0-9]/gi,'_')}',event)">⋯</div>
+          <div class="div-food-check ${pf.already_eaten ? 'checked' : ''}" id="fc-${idx}" onclick="toggleFood(${idx},event)"></div>
+          <div class="div-food-name ${pf.already_eaten ? 'eaten' : ''}" id="fn-${idx}">${f.name}</div>
+          <div class="div-food-badges">${badges}</div>
+          <div class="div-react-inline ${pf.already_eaten ? 'show' : ''}" id="ri-${idx}">
+            ${reactMini('love')}${reactMini('neutral')}${reactMini('refused')}
+          </div>
+          <div class="div-food-expand" onclick="toggleFoodDetail(${idx},event)">⋯</div>
         </div>
-        <div class="div-food-detail" id="det-${k.replace(/[^a-z0-9]/gi,'_')}">
+        <div class="div-food-detail" id="fd-${idx}">
           <label>Premier essai</label>
-          <input type="date" value="${pf.first_try_date||''}" onchange="updateFoodDetail('${f.category.replace(/'/g,"\\'")}','${f.name.replace(/'/g,"\\'")}','date',this.value)">
+          <input type="date" value="${pf.first_try_date||''}" onchange="updateFoodDetail(${idx},'date',this.value)">
           <label>Note courte</label>
-          <input type="text" placeholder="Réaction, quantité…" value="${(pf.notes||'').replace(/"/g,'&quot;')}" onchange="updateFoodDetail('${f.category.replace(/'/g,"\\'")}','${f.name.replace(/'/g,"\\'")}','notes',this.value)">
+          <input type="text" placeholder="Quantité, préparation…" value="${(pf.notes||'').replace(/"/g,'&quot;')}" onchange="updateFoodDetail(${idx},'notes',this.value)">
         </div>`;
       body.appendChild(item);
     });
@@ -1739,32 +2002,261 @@ function renderDiversification() {
   });
 }
 
-function toggleFoodDetail(id, e) {
+/* ---- Suggestions de saison ---- */
+function renderSuggestions() {
+  const el = document.getElementById('div-suggest');
+  if (!el) return;
+  const sugg = seasonalSuggestions(4);
+  if (sugg.length === 0) { el.innerHTML = ''; return; }
+  const mois = new Date().toLocaleDateString('fr-FR', { month: 'long' });
+  el.innerHTML = `
+    <div class="div-suggest-inner">
+      <div class="div-suggest-title">🌿 À essayer en ${mois}</div>
+      <div class="div-suggest-chips">
+        ${sugg.map(f => `<div class="div-suggest-chip" onclick="jumpToFood(${FOOD_SEED.indexOf(f)})">${f.name}</div>`).join('')}
+      </div>
+    </div>`;
+}
+
+/* Ouvre la catégorie et scrolle jusqu'à l'aliment */
+function jumpToFood(idx) {
+  const f = FOOD_SEED[idx];
+  if (!f) return;
+  divSearch = ''; divStatusFilter = 'tous'; divFilterCat = null;
+  const s = document.getElementById('div-search'); if (s) s.value = '';
+  document.getElementById('div-search-clear')?.classList.remove('show');
+  divOpenCats.add(f.category);
+  setDivView('liste');
+  renderDiversification();
+  syncQuickFilterUI();
+  setTimeout(() => {
+    const el = document.getElementById('fi-' + idx);
+    if (el) {
+      el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      el.style.transition = 'box-shadow .4s';
+      el.style.boxShadow = '0 0 0 3px rgba(24,95,165,.35)';
+      setTimeout(() => { el.style.boxShadow = ''; }, 1600);
+    }
+  }, 80);
+}
+
+/* ---- Recherche ---- */
+function onDivSearch(v) {
+  divSearch = v;
+  document.getElementById('div-search-clear')?.classList.toggle('show', v.length > 0);
+  renderDiversification();
+}
+
+function clearDivSearch() {
+  divSearch = '';
+  const s = document.getElementById('div-search');
+  if (s) { s.value = ''; s.focus(); }
+  document.getElementById('div-search-clear')?.classList.remove('show');
+  renderDiversification();
+}
+
+/* ---- Filtres rapides ---- */
+function setDivStatusFilter(mode) {
+  divStatusFilter = mode;
+  syncQuickFilterUI();
+  renderDiversification();
+}
+
+function syncQuickFilterUI() {
+  ['tous','restants','saison'].forEach(m => {
+    document.getElementById('qf-' + m)?.classList.toggle('active', divStatusFilter === m);
+  });
+}
+
+/* ---- Bascule Liste / Frise ---- */
+function setDivView(view) {
+  divView = view;
+  document.getElementById('vt-liste')?.classList.toggle('active', view === 'liste');
+  document.getElementById('vt-frise')?.classList.toggle('active', view === 'frise');
+  const lv = document.getElementById('div-view-liste');
+  const fv = document.getElementById('div-view-frise');
+  if (lv) lv.style.display = view === 'liste' ? '' : 'none';
+  if (fv) fv.style.display = view === 'frise' ? '' : 'none';
+  if (view === 'frise') renderTimeline();
+}
+
+/* ---- Frise chronologique ---- */
+function renderTimeline() {
+  const el = document.getElementById('div-timeline');
+  if (!el) return;
+
+  // Regroupe les aliments goûtés par date de premier essai
+  const byDate = {};
+  FOOD_SEED.forEach(f => {
+    const pf = paulFoods[foodKey(f.category, f.name)];
+    if (!pf?.already_eaten) return;
+    const d = pf.first_try_date || 'sans-date';
+    if (!byDate[d]) byDate[d] = [];
+    byDate[d].push({ f, pf });
+  });
+
+  const dates = Object.keys(byDate).filter(d => d !== 'sans-date').sort().reverse();
+  if (byDate['sans-date']) dates.push('sans-date');
+
+  if (dates.length === 0) {
+    el.innerHTML = '<div class="div-empty">Aucun aliment goûté pour le moment.<br>Coche des aliments pour construire la frise.</div>';
+    return;
+  }
+
+  el.innerHTML = dates.map((d, i) => {
+    const isLast = i === dates.length - 1;
+    const label = d === 'sans-date'
+      ? 'Date non renseignée'
+      : new Date(d + 'T12:00').toLocaleDateString('fr-FR', { weekday:'long', day:'numeric', month:'long', year:'numeric' });
+    const chips = byDate[d].map(({ f, pf }) => {
+      const meta = CAT_META[f.category] || { bg:'#f5f5f3', color:'#888', emoji:'🍽️' };
+      const r = pf.reaction && REACTIONS[pf.reaction] ? ' ' + REACTIONS[pf.reaction].emoji : '';
+      return `<div class="div-tl-chip" style="background:${meta.bg};color:${meta.color}">${meta.emoji} ${f.name}${r}</div>`;
+    }).join('');
+    return `
+      <div class="div-tl-day">
+        <div class="div-tl-rail">
+          <div class="div-tl-dot"></div>
+          ${isLast ? '' : '<div class="div-tl-line"></div>'}
+        </div>
+        <div class="div-tl-content">
+          <div class="div-tl-date">${label}</div>
+          <div class="div-tl-foods">${chips}</div>
+        </div>
+      </div>`;
+  }).join('');
+}
+
+/* ---- Réactions ---- */
+function setReaction(idx, key, e) {
+  if (e) e.stopPropagation();
+  const f = FOOD_SEED[idx];
+  if (!f) return;
+  const k = foodKey(f.category, f.name);
+  if (!paulFoods[k]) paulFoods[k] = { already_eaten: false, first_try_date: '', notes: '' };
+
+  // Re-cliquer sur la même réaction l'annule
+  paulFoods[k].reaction = paulFoods[k].reaction === key ? null : key;
+
+  // Une réaction implique que l'aliment a été goûté
+  if (paulFoods[k].reaction && !paulFoods[k].already_eaten) {
+    paulFoods[k].already_eaten = true;
+    if (!paulFoods[k].first_try_date) {
+      paulFoods[k].first_try_date = fmt(new Date());
+      const di = document.querySelector(`#fd-${idx} input[type=date]`);
+      if (di) di.value = paulFoods[k].first_try_date;
+    }
+    const meta = CAT_META[f.category] || { bg:'#fff' };
+    document.getElementById('fc-' + idx)?.classList.add('checked');
+    document.getElementById('fn-' + idx)?.classList.add('eaten');
+    document.getElementById('ri-' + idx)?.classList.add('show');
+    const item = document.getElementById('fi-' + idx);
+    if (item) item.style.background = meta.bg;
+    refreshDivCounters();
+  }
+
+  // Boutons de réaction
+  Object.keys(REACTIONS).forEach(rk => {
+    const b = document.getElementById(`rb-${idx}-${rk}`);
+    if (b) {
+      Object.values(REACTIONS).forEach(r => b.classList.remove(r.cls));
+      if (paulFoods[k].reaction === rk) b.classList.add(REACTIONS[rk].cls);
+    }
+  });
+
+  savePaulFoodsLocal();
+  upsertPaulFood(f.category, f.name);
+}
+
+function toggleFoodDetail(idx, e) {
   e.stopPropagation();
-  const det = document.getElementById('det-' + id);
+  const det = document.getElementById('fd-' + idx);
   if (det) det.classList.toggle('open');
 }
 
-function toggleFood(category, name, e) {
+/* Met à jour uniquement les compteurs, sans re-render complet */
+function refreshDivCounters() {
+  const total = FOOD_SEED.length;
+  const eaten = FOOD_SEED.filter(f => paulFoods[foodKey(f.category, f.name)]?.already_eaten).length;
+  const pct = total ? Math.round(eaten / total * 100) : 0;
+
+  const numEl = document.getElementById('div-count-num');
+  const fillEl = document.getElementById('div-global-fill');
+  if (numEl) numEl.textContent = eaten;
+  if (fillEl) fillEl.style.width = pct + '%';
+
+  // Badges des accordéons + cards du haut
+  const cats = [...new Set(FOOD_SEED.map(f => f.category))];
+  cats.forEach(cat => {
+    const catFoods = FOOD_SEED.filter(f => f.category === cat);
+    const catEaten = catFoods.filter(f => paulFoods[foodKey(f.category, f.name)]?.already_eaten).length;
+    const catPct = catFoods.length ? Math.round(catEaten / catFoods.length * 100) : 0;
+    const groupId = 'grp-' + cat.replace(/[^a-z0-9]/gi,'_');
+    const badge = document.getElementById('gb-' + groupId);
+    if (badge) badge.textContent = `${catEaten}/${catFoods.length}`;
+    const card = document.getElementById('dcc-' + groupId);
+    if (card) {
+      const prog = card.querySelector('.dcc-prog');
+      const bar  = card.querySelector('.div-mini-bar-fill');
+      if (prog) prog.textContent = `${catEaten}/${catFoods.length}`;
+      if (bar)  bar.style.width = catPct + '%';
+    }
+  });
+  // Card "Tous"
+  const allCard = document.getElementById('dcc-all');
+  if (allCard) {
+    const prog = allCard.querySelector('.dcc-prog');
+    if (prog) prog.textContent = `${eaten}/${total}`;
+  }
+}
+
+function toggleFood(idx, e) {
   e.stopPropagation();
-  const k = foodKey(category, name);
+  const f = FOOD_SEED[idx];
+  if (!f) return;
+  const k = foodKey(f.category, f.name);
   if (!paulFoods[k]) paulFoods[k] = { already_eaten: false, first_try_date: '', notes: '' };
   paulFoods[k].already_eaten = !paulFoods[k].already_eaten;
   if (paulFoods[k].already_eaten && !paulFoods[k].first_try_date) {
     paulFoods[k].first_try_date = fmt(new Date());
+    const dateInput = document.querySelector(`#fd-${idx} input[type=date]`);
+    if (dateInput) dateInput.value = paulFoods[k].first_try_date;
   }
+
+  // Mise à jour ciblée du DOM — l'accordéon reste ouvert, pas de saut de scroll
+  const meta = CAT_META[f.category] || { bg: '#fff' };
+  const chk  = document.getElementById('fc-' + idx);
+  const nm   = document.getElementById('fn-' + idx);
+  const item = document.getElementById('fi-' + idx);
+  const ri   = document.getElementById('ri-' + idx);
+  if (chk)  chk.classList.toggle('checked', paulFoods[k].already_eaten);
+  if (nm)   nm.classList.toggle('eaten',   paulFoods[k].already_eaten);
+  if (item) item.style.background = paulFoods[k].already_eaten ? meta.bg : '';
+  if (ri)   ri.classList.toggle('show',    paulFoods[k].already_eaten);
+
+  // Décocher efface la réaction
+  if (!paulFoods[k].already_eaten && paulFoods[k].reaction) {
+    paulFoods[k].reaction = null;
+    Object.keys(REACTIONS).forEach(rk => {
+      const b = document.getElementById(`rb-${idx}-${rk}`);
+      if (b) Object.values(REACTIONS).forEach(r => b.classList.remove(r.cls));
+    });
+  }
+
+  refreshDivCounters();
   savePaulFoodsLocal();
-  upsertPaulFood(category, name);
-  renderDiversification();
+  upsertPaulFood(f.category, f.name);
 }
 
-function updateFoodDetail(category, name, field, value) {
-  const k = foodKey(category, name);
+function updateFoodDetail(idx, field, value) {
+  const f = FOOD_SEED[idx];
+  if (!f) return;
+  const k = foodKey(f.category, f.name);
   if (!paulFoods[k]) paulFoods[k] = { already_eaten: false, first_try_date: '', notes: '' };
-  if (field === 'date') paulFoods[k].first_try_date = value;
+  if (field === 'date')  paulFoods[k].first_try_date = value;
   if (field === 'notes') paulFoods[k].notes = value;
   savePaulFoodsLocal();
-  upsertPaulFood(category, name);
+  upsertPaulFood(f.category, f.name);
 }
 
 /* ---- PDF ---- */
@@ -1773,23 +2265,63 @@ function exportFoodPDF() {
   if (eaten.length === 0) { showToast('Aucun aliment coché pour l\'instant'); return; }
 
   const today_fr = new Date().toLocaleDateString('fr-FR', { day:'2-digit', month:'2-digit', year:'numeric' });
-  const cats = [...new Set(eaten.map(f => f.category))];
+  const orderedCats = [...new Set(FOOD_SEED.map(f => f.category))];
+  const cats = orderedCats.filter(c => eaten.some(f => f.category === c));
 
-  const catColors  = { 'Légumes':'#EDF7F1','Fruits':'#FEF4EC','Féculents':'#FDFAEC','Protéines':'#FDF0F0','Divers':'#F4F0FB' };
-  const catAccents = { 'Légumes':'#5A9E6F','Fruits':'#E07A3A','Féculents':'#C4A32A','Protéines':'#D95F5F','Divers':'#8F6ABE' };
-  const catEmojis  = { 'Légumes':'🥦','Fruits':'🍎','Féculents':'🌾','Protéines':'🥩','Divers':'🍫' };
+  const catColors  = {
+    'Légumes':'#EDF7F1','Fruits':'#FEF4EC','Féculents':'#FDFAEC',
+    'Viandes blanches':'#FDF0F0','Viandes rouges':'#FDF0F0',
+    'Poissons maigres':'#EEF5FC','Poissons gras':'#E6F0FA',
+    'Œufs':'#FDFAEC','Fruits de mer':'#FEF4EC','Charcuterie':'#FAF0EA',
+    'Divers':'#F4F0FB'
+  };
+  const catAccents = {
+    'Légumes':'#5A9E6F','Fruits':'#E07A3A','Féculents':'#C4A32A',
+    'Viandes blanches':'#D95F5F','Viandes rouges':'#C04040',
+    'Poissons maigres':'#3A7FBF','Poissons gras':'#2A6099',
+    'Œufs':'#B8860B','Fruits de mer':'#D4540A','Charcuterie':'#A0522D',
+    'Divers':'#8F6ABE'
+  };
+  const catEmojis  = {
+    'Légumes':'🥦','Fruits':'🍎','Féculents':'🌾',
+    'Viandes blanches':'🍗','Viandes rouges':'🥩',
+    'Poissons maigres':'🐟','Poissons gras':'🐠',
+    'Œufs':'🥚','Fruits de mer':'🦐','Charcuterie':'🍖',
+    'Divers':'🍫'
+  };
+
+  // Statistiques de réactions
+  const rCount = { love:0, neutral:0, refused:0 };
+  eaten.forEach(f => {
+    const r = paulFoods[foodKey(f.category, f.name)]?.reaction;
+    if (r && rCount[r] !== undefined) rCount[r]++;
+  });
 
   let sections = '';
   cats.forEach(cat => {
     const foods = eaten.filter(f => f.category === cat);
     const pf_list = foods.map(f => {
       const pf = paulFoods[foodKey(f.category, f.name)] || {};
-      const date = pf.first_try_date ? ` <span style="color:#aaa;font-size:10px">${new Date(pf.first_try_date+'T12:00').toLocaleDateString('fr-FR')}</span>` : '';
-      const note = pf.notes ? ` <em style="color:#999;font-size:11px">· ${pf.notes}</em>` : '';
-      return `<li style="padding:5px 0;border-bottom:1px solid rgba(0,0,0,0.05)"><span style="color:${catAccents[cat]};font-size:14px">✓</span> ${f.name}${date}${note}</li>`;
+      const date = pf.first_try_date
+        ? `<span style="color:#aaa;font-size:10px;white-space:nowrap">${new Date(pf.first_try_date+'T12:00').toLocaleDateString('fr-FR')}</span>` : '';
+      const react = pf.reaction && REACTIONS[pf.reaction]
+        ? `<span style="font-size:14px" title="${REACTIONS[pf.reaction].label}">${REACTIONS[pf.reaction].emoji}</span>` : '';
+      const allerg = ALLERGENS[f.name]
+        ? `<span style="background:#FDECEC;color:#B94A4A;font-size:9px;font-weight:700;padding:2px 6px;border-radius:5px;white-space:nowrap">${ALLERGENS[f.name]}</span>` : '';
+      const saison = (SEASONS[f.name] && SEASONS[f.name] !== 'all' && isInSeason(f.name))
+        ? `<span style="background:#E4F3E9;color:#3E7A52;font-size:9px;font-weight:700;padding:2px 6px;border-radius:5px;white-space:nowrap">🌿 saison</span>` : '';
+      const note = pf.notes
+        ? `<div style="color:#999;font-size:11px;font-style:italic;margin:2px 0 0 22px">${pf.notes}</div>` : '';
+      return `<li style="padding:6px 0;border-bottom:1px solid rgba(0,0,0,0.05)">
+        <div style="display:flex;align-items:center;gap:7px;flex-wrap:wrap">
+          <span style="color:${catAccents[cat]};font-size:14px">✓</span>
+          <span style="flex:1;min-width:100px">${f.name}</span>
+          ${react}${saison}${allerg}${date}
+        </div>${note}
+      </li>`;
     }).join('');
     sections += `
-      <div style="margin-bottom:18px;border-radius:12px;overflow:hidden;box-shadow:0 1px 4px rgba(0,0,0,0.08)">
+      <div style="margin-bottom:18px;border-radius:12px;overflow:hidden;box-shadow:0 1px 4px rgba(0,0,0,0.08);page-break-inside:avoid">
         <div style="background:${catAccents[cat]};color:#fff;padding:10px 16px;font-size:14px;font-weight:700">
           ${catEmojis[cat]} ${cat} <span style="font-weight:400;opacity:.85;font-size:12px">(${foods.length} aliment${foods.length>1?'s':''})</span>
         </div>
@@ -1798,6 +2330,47 @@ function exportFoodPDF() {
         </div>
       </div>`;
   });
+
+  // Frise chronologique
+  const byDate = {};
+  eaten.forEach(f => {
+    const pf = paulFoods[foodKey(f.category, f.name)] || {};
+    const d = pf.first_try_date || 'sans-date';
+    if (!byDate[d]) byDate[d] = [];
+    byDate[d].push({ f, pf });
+  });
+  const tlDates = Object.keys(byDate).filter(d => d !== 'sans-date').sort();
+  let timeline = '';
+  if (tlDates.length > 0) {
+    timeline = `
+      <div style="margin-top:26px;page-break-inside:avoid">
+        <div style="font-size:15px;font-weight:800;color:#1a1a1a;margin-bottom:12px">📅 Ordre d'introduction</div>
+        ${tlDates.map(d => {
+          const label = new Date(d+'T12:00').toLocaleDateString('fr-FR', { day:'numeric', month:'long', year:'numeric' });
+          const items = byDate[d].map(({f,pf}) => {
+            const r = pf.reaction && REACTIONS[pf.reaction] ? ' '+REACTIONS[pf.reaction].emoji : '';
+            return `<span style="background:${catColors[f.category]};color:${catAccents[f.category]};font-size:11.5px;padding:3px 9px;border-radius:8px;white-space:nowrap">${f.name}${r}</span>`;
+          }).join('');
+          return `<div style="display:flex;gap:10px;margin-bottom:8px;align-items:baseline">
+            <div style="font-size:11px;color:#888;font-weight:700;min-width:105px;white-space:nowrap">${label}</div>
+            <div style="display:flex;flex-wrap:wrap;gap:4px;flex:1">${items}</div>
+          </div>`;
+        }).join('')}
+      </div>`;
+  }
+
+  // Légende
+  const legend = `
+    <div style="margin-top:24px;padding:14px 16px;background:#fff;border-radius:12px;border:1px solid rgba(0,0,0,.07);font-size:11px;color:#777;page-break-inside:avoid">
+      <div style="font-weight:700;color:#555;margin-bottom:7px;font-size:11.5px">Légende</div>
+      <div style="display:flex;flex-wrap:wrap;gap:14px">
+        <span>😋 a aimé</span>
+        <span>😐 neutre</span>
+        <span>😖 a refusé</span>
+        <span><span style="background:#E4F3E9;color:#3E7A52;font-size:9px;font-weight:700;padding:2px 6px;border-radius:5px">🌿 saison</span> de saison actuellement</span>
+        <span><span style="background:#FDECEC;color:#B94A4A;font-size:9px;font-weight:700;padding:2px 6px;border-radius:5px">Allergène</span> allergène majeur</span>
+      </div>
+    </div>`;
 
   const html = `<!DOCTYPE html><html lang="fr"><head><meta charset="UTF-8">
 <title>Aliments de PAUL</title>
@@ -1830,6 +2403,8 @@ function exportFoodPDF() {
   .header .sub { font-size: 13px; color: #666; }
   .header .date { font-size: 12px; color: #999; margin-top: 6px; }
   .badge { display: inline-block; background: #5A9E6F; color: #fff; border-radius: 20px; padding: 3px 12px; font-size: 12px; font-weight: 700; margin-top: 8px; }
+  .rstats { display: flex; gap: 8px; margin-top: 10px; flex-wrap: wrap; }
+  .rstat { background: rgba(255,255,255,.75); border-radius: 20px; padding: 4px 12px; font-size: 12px; font-weight: 600; color: #555; }
 </style></head><body>
 <div class="page">
   <div class="toolbar no-print">
@@ -1841,8 +2416,16 @@ function exportFoodPDF() {
     <div class="sub">MAM Les Crocs Mignons · Leslie</div>
     <div class="date">Généré le ${today_fr}</div>
     <div class="badge">${eaten.length} aliment${eaten.length>1?'s':''} goûtés</div>
+    ${(rCount.love+rCount.neutral+rCount.refused) > 0 ? `
+    <div class="rstats">
+      ${rCount.love    ? `<span class="rstat">😋 ${rCount.love} aimé${rCount.love>1?'s':''}</span>` : ''}
+      ${rCount.neutral ? `<span class="rstat">😐 ${rCount.neutral} neutre${rCount.neutral>1?'s':''}</span>` : ''}
+      ${rCount.refused ? `<span class="rstat">😖 ${rCount.refused} refusé${rCount.refused>1?'s':''}</span>` : ''}
+    </div>` : ''}
   </div>
   ${sections}
+  ${timeline}
+  ${legend}
 </div>
 </body></html>`;
 
